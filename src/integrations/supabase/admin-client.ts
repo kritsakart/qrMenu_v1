@@ -1,4 +1,3 @@
-
 // This file contains a special Supabase client with admin rights
 // Use this client only for operations that require bypassing RLS
 import { createClient } from '@supabase/supabase-js';
