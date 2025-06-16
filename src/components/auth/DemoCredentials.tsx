@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
@@ -54,12 +53,12 @@ const DemoCredentials = () => {
       </p>
       <p className="mt-2 flex items-center justify-center">
         Код локації кафе:
-        <span className="font-mono mx-1">cafe6333</span>
+        <span className="font-mono mx-1">cafe6096</span>
         <Button
           variant="ghost"
           size="sm"
           className="h-6 w-6 p-0"
-          onClick={() => copyToClipboard("cafe6333", 'cafe')}
+          onClick={() => copyToClipboard("cafe6096", 'cafe')}
           title="Копіювати логін"
         >
           {copiedCafe ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
