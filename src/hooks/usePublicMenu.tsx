@@ -13,6 +13,60 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
   const { toast } = useToast();
   const [allLocations, setAllLocations] = useState<any[]>([]);
 
+  // Слухач для оновлення порядку товарів при зміні localStorage
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key && event.key.startsWith('menuItemOrder_')) {
+        console.log('📡 PUBLIC MENU: Storage change detected:', event.key);
+        // Перезавантажуємо меню при зміні порядку
+        if (location?.cafeId) {
+          setMenuItems(prevItems => {
+            const categoryId = event.key!.replace('menuItemOrder_', '');
+            const savedOrderRaw = event.newValue;
+            
+            if (savedOrderRaw) {
+              try {
+                const savedOrder = JSON.parse(savedOrderRaw) as Record<string, number>;
+                console.log(`📂 PUBLIC MENU: Applying new order for category ${categoryId}:`, savedOrder);
+                
+                // Застосовуємо новий порядок до товарів
+                const updatedItems = [...prevItems];
+                const categoryItems = updatedItems.filter(item => item.categoryId === categoryId);
+                categoryItems.sort((a, b) => {
+                  const orderA = savedOrder[a.id] ?? 999;
+                  const orderB = savedOrder[b.id] ?? 999;
+                  return orderA - orderB;
+                });
+                
+                // Замінюємо товари цієї категорії відсортованими
+                return updatedItems.filter(item => item.categoryId !== categoryId).concat(categoryItems);
+              } catch (e) {
+                console.log(`⚠️ PUBLIC MENU: Could not parse new order for category ${categoryId}`);
+              }
+            }
+            
+            return prevItems;
+          });
+        }
+      }
+    };
+
+    // Додаємо слухач для зміни localStorage
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Також додаємо слухач для кастомних подій (для зміни в тій же вкладці)
+    const handleCustomStorageChange = (event: CustomEvent) => {
+      handleStorageChange(event.detail);
+    };
+    
+    window.addEventListener('localStorageChange', handleCustomStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange as EventListener);
+    };
+  }, [location?.cafeId]);
+
   useEffect(() => {
     const fetchMenuData = async () => {
       if (!locationId || !tableId) {
@@ -161,7 +215,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           }
 
           // console.log("✅ PUBLIC MENU: Items found:", itemsData);
-          const mappedItems = (itemsData || []).map(item => ({
+          let mappedItems = (itemsData || []).map(item => ({
             id: item.id,
             categoryId: item.category_id,
             name: item.name,
@@ -169,8 +223,36 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
             price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
             weight: item.weight || undefined,
             imageUrl: item.image_url || undefined,
+            order: item.order || 0,
             createdAt: item.created_at
           }));
+          
+          // Застосовуємо збережений порядок з localStorage для кожної категорії
+          mappedCategories.forEach(category => {
+            const savedOrderRaw = localStorage.getItem(`menuItemOrder_${category.id}`);
+            if (savedOrderRaw) {
+              try {
+                const savedOrder = JSON.parse(savedOrderRaw) as Record<string, number>;
+                console.log(`📂 PUBLIC MENU: Loading saved order for category ${category.name}:`, savedOrder);
+                
+                // Фільтруємо товари цієї категорії та сортуємо згідно збереженого порядку
+                const categoryItems = mappedItems.filter(item => item.categoryId === category.id);
+                categoryItems.sort((a, b) => {
+                  const orderA = savedOrder[a.id] ?? 999;
+                  const orderB = savedOrder[b.id] ?? 999;
+                  return orderA - orderB;
+                });
+                
+                // Замінюємо товари цієї категорії відсортованими
+                mappedItems = mappedItems.filter(item => item.categoryId !== category.id).concat(categoryItems);
+                
+                console.log(`✅ PUBLIC MENU: Applied saved order for category ${category.name}`);
+              } catch (e) {
+                console.log(`⚠️ PUBLIC MENU: Could not parse saved order for category ${category.name}`);
+              }
+            }
+          });
+          
           setMenuItems(mappedItems);
         } else {
           // console.log("🔍 PUBLIC MENU: No categories found, setting empty menu items");

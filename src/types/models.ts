@@ -44,6 +44,7 @@ export type MenuItem = {
   price: number;
   weight?: string;
   imageUrl?: string;
+  order: number;
   createdAt: string;
 };
 
@@ -120,6 +121,7 @@ export const mapSupabaseMenuItem = (item: any): MenuItem => ({
   price: item.price,
   weight: item.weight,
   imageUrl: item.image_url,
+  order: item.order || 0,
   createdAt: item.created_at
 });
 

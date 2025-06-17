@@ -49,6 +49,17 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
       
       console.log("🔧 DIAGNOSTIC: Proceeding directly to insert without category check");
       
+      // Get the current max order for this category
+      const { data: maxOrderData } = await supabase
+        .from("menu_items")
+        .select("order")
+        .eq("category_id", categoryId)
+        .order("order", { ascending: false })
+        .limit(1);
+      
+      const nextOrder = maxOrderData && maxOrderData.length > 0 ? (maxOrderData[0].order || 0) + 1 : 0;
+      console.log("📊 DIAGNOSTIC: Next order will be:", nextOrder);
+      
       // Create a properly formatted object for Supabase insert
       const itemData = {
         category_id: categoryId,
@@ -56,7 +67,8 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
         description: (data.description && data.description.trim() !== '') ? data.description.trim() : null,
         price: Number(data.price),
         weight: (data.weight && data.weight.trim() !== '') ? data.weight.trim() : null,
-        image_url: (data.imageUrl && data.imageUrl.trim() !== '') ? data.imageUrl.trim() : null
+        image_url: (data.imageUrl && data.imageUrl.trim() !== '') ? data.imageUrl.trim() : null,
+        order: nextOrder
       };
 
       console.log("📤 DIAGNOSTIC: Final itemData object:", itemData);
@@ -95,6 +107,7 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
           price: typeof insertData.price === 'string' ? parseFloat(insertData.price) : insertData.price,
           weight: insertData.weight || undefined,
           imageUrl: insertData.image_url || undefined,
+          order: insertData.order || 0,
           createdAt: insertData.created_at
         };
 

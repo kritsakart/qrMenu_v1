@@ -95,9 +95,9 @@ export const MenuPageContent = ({
     : "";
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-3">
       {/* Categories sidebar */}
-      <div>
+      <div className="lg:col-span-1">
         <CategoryList
           categories={categories}
           selectedCategoryId={selectedCategoryId}
@@ -110,7 +110,7 @@ export const MenuPageContent = ({
       </div>
 
       {/* Menu items content */}
-      <div>
+      <div className="lg:col-span-2">
         <MenuItemList
           title={currentCategoryName || "Пункти меню"}
           menuItems={menuItems}

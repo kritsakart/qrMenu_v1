@@ -5,12 +5,15 @@ import { useFetchMenuItems } from "./useFetchMenuItems";
 import { useAddMenuItem, AddMenuItemData } from "./useAddMenuItem";
 import { useUpdateMenuItem, UpdateMenuItemData } from "./useUpdateMenuItem";
 import { useDeleteMenuItem } from "./useDeleteMenuItem";
+import { useUpdateMenuItemOrder, useUpdateMultipleMenuItemsOrder } from "./useUpdateMenuItemOrder";
 
 export {
   useFetchMenuItems,
   useAddMenuItem,
   useUpdateMenuItem,
   useDeleteMenuItem,
+  useUpdateMenuItemOrder,
+  useUpdateMultipleMenuItemsOrder,
   type AddMenuItemData,
   type UpdateMenuItemData
 };

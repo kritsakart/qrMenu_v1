@@ -60,6 +60,7 @@ export const useFetchMenuItems = (categoryId?: string) => {
           price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
           weight: item.weight || undefined,
           imageUrl: item.image_url || undefined,
+          order: item.order || 0,
           createdAt: item.created_at
         }));
         
