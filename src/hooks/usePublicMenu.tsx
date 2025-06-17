@@ -13,12 +13,72 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
   const { toast } = useToast();
   const [allLocations, setAllLocations] = useState<any[]>([]);
 
-  // Слухач для оновлення порядку товарів при зміні localStorage
+  // Real-time підписка на зміни в menu_items для синхронізації між пристроями
+  useEffect(() => {
+    if (!location?.cafeId) return;
+
+    console.log('📡 PUBLIC MENU: Setting up real-time subscription for cafe:', location.cafeId);
+    
+    // Підписуємося на зміни в таблиці menu_items для цього кафе
+    const channel = supabase
+      .channel('menu-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'menu_items',
+          filter: `cafe_id=eq.${location.cafeId}`
+        },
+        (payload) => {
+          console.log('📡 PUBLIC MENU: Real-time update received:', payload);
+          
+          // Оновлюємо локальний стан з новими даними
+          setMenuItems(prevItems => {
+            const updatedItems = [...prevItems];
+            const itemIndex = updatedItems.findIndex(item => item.id === payload.new.id);
+            
+            if (itemIndex >= 0) {
+              // Оновлюємо існуючий товар
+              updatedItems[itemIndex] = {
+                ...updatedItems[itemIndex],
+                order: payload.new.order || 0
+              };
+              
+              console.log('📦 PUBLIC MENU: Updated item order:', {
+                id: payload.new.id,
+                name: updatedItems[itemIndex].name,
+                newOrder: payload.new.order
+              });
+              
+              // Пересортовуємо товари в категорії
+              const categoryId = updatedItems[itemIndex].categoryId;
+              const categoryItems = updatedItems.filter(item => item.categoryId === categoryId);
+              const otherItems = updatedItems.filter(item => item.categoryId !== categoryId);
+              
+              categoryItems.sort((a, b) => (a.order || 0) - (b.order || 0));
+              
+              return [...otherItems, ...categoryItems];
+            }
+            
+            return prevItems;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('📡 PUBLIC MENU: Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [location?.cafeId]);
+
+  // Слухач для оновлення порядку товарів при зміні localStorage (fallback для same-tab updates)
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key && event.key.startsWith('menuItemOrder_')) {
-        console.log('📡 PUBLIC MENU: Storage change detected:', event.key);
-        // Перезавантажуємо меню при зміні порядку
+        console.log('📡 PUBLIC MENU: localStorage change detected (fallback):', event.key);
+        // Цей код залишаємо як fallback для same-tab синхронізації
         if (location?.cafeId) {
           setMenuItems(prevItems => {
             const categoryId = event.key!.replace('menuItemOrder_', '');
@@ -27,7 +87,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
             if (savedOrderRaw) {
               try {
                 const savedOrder = JSON.parse(savedOrderRaw) as Record<string, number>;
-                console.log(`📂 PUBLIC MENU: Applying new order for category ${categoryId}:`, savedOrder);
+                console.log(`📂 PUBLIC MENU: Applying localStorage order for category ${categoryId}:`, savedOrder);
                 
                 // Застосовуємо новий порядок до товарів
                 const updatedItems = [...prevItems];
@@ -41,7 +101,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
                 // Замінюємо товари цієї категорії відсортованими
                 return updatedItems.filter(item => item.categoryId !== categoryId).concat(categoryItems);
               } catch (e) {
-                console.log(`⚠️ PUBLIC MENU: Could not parse new order for category ${categoryId}`);
+                console.log(`⚠️ PUBLIC MENU: Could not parse localStorage order for category ${categoryId}`);
               }
             }
             
@@ -207,7 +267,8 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           const { data: itemsData, error: itemsError } = await supabase
             .from('menu_items')
             .select('*')
-            .in('category_id', categoryIds);
+            .in('category_id', categoryIds)
+            .order('order'); // Сортуємо за полем order з бази даних
 
           if (itemsError) {
             // console.error("❌ PUBLIC MENU: Items error:", itemsError);
@@ -215,7 +276,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           }
 
           // console.log("✅ PUBLIC MENU: Items found:", itemsData);
-          let mappedItems = (itemsData || []).map(item => ({
+          const mappedItems = (itemsData || []).map(item => ({
             id: item.id,
             categoryId: item.category_id,
             name: item.name,
@@ -227,31 +288,9 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
             createdAt: item.created_at
           }));
           
-          // Застосовуємо збережений порядок з localStorage для кожної категорії
-          mappedCategories.forEach(category => {
-            const savedOrderRaw = localStorage.getItem(`menuItemOrder_${category.id}`);
-            if (savedOrderRaw) {
-              try {
-                const savedOrder = JSON.parse(savedOrderRaw) as Record<string, number>;
-                console.log(`📂 PUBLIC MENU: Loading saved order for category ${category.name}:`, savedOrder);
-                
-                // Фільтруємо товари цієї категорії та сортуємо згідно збереженого порядку
-                const categoryItems = mappedItems.filter(item => item.categoryId === category.id);
-                categoryItems.sort((a, b) => {
-                  const orderA = savedOrder[a.id] ?? 999;
-                  const orderB = savedOrder[b.id] ?? 999;
-                  return orderA - orderB;
-                });
-                
-                // Замінюємо товари цієї категорії відсортованими
-                mappedItems = mappedItems.filter(item => item.categoryId !== category.id).concat(categoryItems);
-                
-                console.log(`✅ PUBLIC MENU: Applied saved order for category ${category.name}`);
-              } catch (e) {
-                console.log(`⚠️ PUBLIC MENU: Could not parse saved order for category ${category.name}`);
-              }
-            }
-          });
+          console.log('📦 PUBLIC MENU: Loaded items with order from database:', 
+            mappedItems.map(item => ({ name: item.name, order: item.order, categoryId: item.categoryId }))
+          );
           
           setMenuItems(mappedItems);
         } else {
