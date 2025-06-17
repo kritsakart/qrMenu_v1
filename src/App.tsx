@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Pages
@@ -22,9 +22,18 @@ import MenuPageAdmin from "@/pages/cafe-admin/MenuPage";
 import NotFound from "@/pages/NotFound";
 import CafeOwnersTable from "@/pages/CafeOwnersTable";
 
-const queryClient = new QueryClient();
-
 const App = () => {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnWindowFocus: false,
+        retry: false,
+      },
+    },
+  }));
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
