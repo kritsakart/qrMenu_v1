@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +9,8 @@ interface AdminLoginFormProps {
   password: string;
   isSubmitting: boolean;
   loading: boolean;
-  setUsername: (value: string) => void;
-  setPassword: (value: string) => void;
+  setUsername: (username: string) => void;
+  setPassword: (password: string) => void;
   handleLogin: (e: React.FormEvent) => void;
 }
 
@@ -61,13 +60,6 @@ const AdminLoginForm = ({
           "Увійти як адмін"
         )}
       </Button>
-
-      <Alert className="bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-500" />
-        <AlertDescription className="text-blue-700">
-          Для входу як адміністратор системи: <strong>admin / admin</strong>
-        </AlertDescription>
-      </Alert>
     </form>
   );
 };

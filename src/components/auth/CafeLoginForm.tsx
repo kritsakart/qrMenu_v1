@@ -1,16 +1,15 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, User } from "lucide-react";
+import { User, Info } from "lucide-react";
 
 interface CafeLoginFormProps {
   username: string;
   isSubmitting: boolean;
   loading: boolean;
-  setUsername: (value: string) => void;
+  setUsername: (username: string) => void;
   handleLogin: (e: React.FormEvent) => void;
 }
 
@@ -49,7 +48,7 @@ const CafeLoginForm = ({
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Введіть унікальний код локації кафе для входу (наприклад, cafe6333)
+          Введіть унікальний код локації кафе для входу
         </p>
       </div>
       
@@ -63,13 +62,6 @@ const CafeLoginForm = ({
           "Увійти в кафе"
         )}
       </Button>
-
-      <Alert className="bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-500" />
-        <AlertDescription className="text-blue-700">
-          Для тестового входу використовуйте: <strong>cafe6333</strong>
-        </AlertDescription>
-      </Alert>
     </form>
   );
 };
