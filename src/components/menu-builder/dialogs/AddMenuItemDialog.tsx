@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MenuItem } from "@/types/models";
 import { MenuItemFormState } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddMenuItemDialogProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export const AddMenuItemDialog = ({
     weight: "",
     imageUrl: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -38,10 +41,60 @@ export const AddMenuItemDialog = ({
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    } else {
+      setImageFile(null);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | undefined> => {
+    if (!imageFile) return undefined;
+
+    const fileExt = imageFile.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError, data: uploadData } = await supabase.storage
+      .from('menu-images')
+      .upload(filePath, imageFile, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      toast({
+        variant: "destructive",
+        title: "Помилка завантаження зображення",
+        description: uploadError.message,
+      });
+      console.error("Помилка завантаження зображення:", uploadError);
+      return undefined;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('menu-images')
+      .getPublicUrl(filePath);
+
+    if (publicUrlData) {
+      return publicUrlData.publicUrl;
+    }
+    return undefined;
+  };
+
   const handleSubmit = async () => {
-    const result = await onAddMenuItem(formState);
+    let uploadedImageUrl: string | undefined = formState.imageUrl;
+
+    if (imageFile) {
+      uploadedImageUrl = await uploadImage();
+      if (!uploadedImageUrl) {
+        return;
+      }
+    }
+
+    const result = await onAddMenuItem({ ...formState, imageUrl: uploadedImageUrl });
     if (result) {
-      // Reset form and close dialog on success
       setFormState({
         name: "",
         description: "",
@@ -49,6 +102,7 @@ export const AddMenuItemDialog = ({
         weight: "",
         imageUrl: "",
       });
+      setImageFile(null);
       onOpenChange(false);
     }
   };
@@ -105,15 +159,21 @@ export const AddMenuItemDialog = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="item-imageUrl">Image URL (Optional)</Label>
+              <Label htmlFor="item-imageFile">Image (Optional)</Label>
               <Input
-                name="item-imageUrl"
-                value={formState.imageUrl}
-                onChange={handleChange}
-                placeholder="https://example.com/image.jpg"
+                name="item-imageFile"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
               />
             </div>
           </div>
+          {formState.imageUrl && !imageFile && (
+            <div className="space-y-2">
+              <Label>Current Image URL</Label>
+              <p className="text-sm text-gray-500 break-all">{formState.imageUrl}</p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
