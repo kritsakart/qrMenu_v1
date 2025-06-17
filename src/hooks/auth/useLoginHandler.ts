@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { AppUser } from "@/types/auth";
 import { handleAdminLogin } from "./useAdminAuth";

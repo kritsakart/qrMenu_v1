@@ -1,4 +1,3 @@
-
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 
 /**
@@ -51,90 +50,9 @@ export const checkCafeOwnerExists = async (username: string) => {
 
     if (exactMatchError) {
       console.error("Error in exact match search:", exactMatchError);
-    } else {
-      console.log("Exact match search result:", exactMatch);
-    }
-
-    // Try case-insensitive match if exact match fails
-    if (!exactMatch) {
-      console.log("No exact match found, trying case-insensitive search");
+    } else if (exactMatch) {
+      console.log("Exact match found:", exactMatch);
       
-      const { data: caseInsensitiveMatch, error: caseInsensitiveError } = await supabaseAdmin
-        .from("cafe_owners")
-        .select("id, username, status, name, email")
-        .ilike("username", username)
-        .maybeSingle();
-      
-      if (caseInsensitiveError) {
-        console.error("Error in case-insensitive search:", caseInsensitiveError);
-      } else {
-        console.log("Case-insensitive search result:", caseInsensitiveMatch);
-      }
-      
-      // Use the case-insensitive match if found
-      if (caseInsensitiveMatch) {
-        const result = {
-          found: true,
-          error: null,
-          userData: {
-            id: caseInsensitiveMatch.id,
-            username: caseInsensitiveMatch.username,
-            status: caseInsensitiveMatch.status,
-            name: caseInsensitiveMatch.name,
-            email: caseInsensitiveMatch.email,
-            comparisonInfo: {
-              enteredUsername: username,
-              dbUsername: caseInsensitiveMatch.username,
-              match: true,
-              matchType: "case-insensitive"
-            }
-          }
-        };
-
-        // Store debug info
-        (window as any).loginDebugInfo = {
-          ...(window as any).loginDebugInfo || {},
-          userExistsCheck: {
-            query: `SELECT * FROM cafe_owners WHERE username ILIKE '${username}'`,
-            result: result
-          }
-        };
-
-        if (caseInsensitiveMatch.status !== "active") {
-          throw new Error(`Account is deactivated. Status: ${caseInsensitiveMatch.status}`);
-        }
-
-        return caseInsensitiveMatch;
-      }
-    } else {
-      // Process exact match
-      const result = {
-        found: true,
-        error: null,
-        userData: {
-          id: exactMatch.id,
-          username: exactMatch.username,
-          status: exactMatch.status,
-          name: exactMatch.name,
-          email: exactMatch.email,
-          comparisonInfo: {
-            enteredUsername: username,
-            dbUsername: exactMatch.username,
-            match: true,
-            matchType: "exact"
-          }
-        }
-      };
-
-      // Store debug info
-      (window as any).loginDebugInfo = {
-        ...(window as any).loginDebugInfo || {},
-        userExistsCheck: {
-          query: `SELECT * FROM cafe_owners WHERE username = '${username}'`,
-          result: result
-        }
-      };
-
       if (exactMatch.status !== "active") {
         throw new Error(`Account is deactivated. Status: ${exactMatch.status}`);
       }
@@ -142,22 +60,28 @@ export const checkCafeOwnerExists = async (username: string) => {
       return exactMatch;
     }
 
-    // No user found
-    const notFoundResult = {
-      found: false,
-      error: null,
-      userData: null
-    };
-
-    // Store debug info about negative result
-    (window as any).loginDebugInfo = {
-      ...(window as any).loginDebugInfo || {},
-      userExistsCheck: {
-        query: `SELECT * FROM cafe_owners WHERE username = '${username}' OR username ILIKE '${username}'`,
-        result: notFoundResult
+    // Try case-insensitive match if exact match fails
+    console.log("No exact match found, trying case-insensitive search");
+    
+    const { data: caseInsensitiveMatch, error: caseInsensitiveError } = await supabaseAdmin
+      .from("cafe_owners")
+      .select("id, username, status, name, email")
+      .ilike("username", username)
+      .maybeSingle();
+    
+    if (caseInsensitiveError) {
+      console.error("Error in case-insensitive search:", caseInsensitiveError);
+    } else if (caseInsensitiveMatch) {
+      console.log("Case-insensitive match found:", caseInsensitiveMatch);
+      
+      if (caseInsensitiveMatch.status !== "active") {
+        throw new Error(`Account is deactivated. Status: ${caseInsensitiveMatch.status}`);
       }
-    };
 
+      return caseInsensitiveMatch;
+    }
+
+    // No user found
     console.log(`User not found in database: ${username}`);
     return null;
   } catch (error) {
@@ -174,6 +98,6 @@ export const checkCafeOwnerExists = async (username: string) => {
         }
       }
     };
-    return null;
+    throw error; // Re-throw the error to be handled by the caller
   }
 };
