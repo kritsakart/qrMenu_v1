@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MenuItem } from "@/types/models";
 import { MenuItemFormState } from "./types";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface AddMenuItemDialogProps {
   isOpen: boolean;
@@ -29,8 +27,6 @@ export const AddMenuItemDialog = ({
     weight: "",
     imageUrl: "",
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,74 +37,8 @@ export const AddMenuItemDialog = ({
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-    } else {
-      setImageFile(null);
-    }
-  };
-
-  const uploadImage = async (): Promise<string | undefined> => {
-    if (!imageFile) return undefined;
-
-    // Додаємо логування стану сесії перед завантаженням
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log("Session before upload:", session);
-    console.log("User before upload:", user);
-
-    if (!session) {
-      toast({
-        variant: "destructive",
-        title: "Помилка автентифікації",
-        description: "Користувач не автентифікований. Будь ласка, увійдіть знову.",
-      });
-      return undefined;
-    }
-
-    const fileExt = imageFile.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError, data: uploadData } = await supabase.storage
-      .from('menu-images')
-      .upload(filePath, imageFile, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (uploadError) {
-      toast({
-        variant: "destructive",
-        title: "Помилка завантаження зображення",
-        description: uploadError.message,
-      });
-      console.error("Помилка завантаження зображення:", uploadError);
-      return undefined;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('menu-images')
-      .getPublicUrl(filePath);
-
-    if (publicUrlData) {
-      return publicUrlData.publicUrl;
-    }
-    return undefined;
-  };
-
   const handleSubmit = async () => {
-    let uploadedImageUrl: string | undefined = formState.imageUrl;
-
-    if (imageFile) {
-      uploadedImageUrl = await uploadImage();
-      if (!uploadedImageUrl) {
-        return;
-      }
-    }
-
-    const result = await onAddMenuItem({ ...formState, imageUrl: uploadedImageUrl });
+    const result = await onAddMenuItem(formState);
     if (result) {
       setFormState({
         name: "",
@@ -117,7 +47,6 @@ export const AddMenuItemDialog = ({
         weight: "",
         imageUrl: "",
       });
-      setImageFile(null);
       onOpenChange(false);
     }
   };
@@ -163,32 +92,24 @@ export const AddMenuItemDialog = ({
               placeholder="Enter item description"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="item-weight">Weight/Size (Optional)</Label>
-              <Input
-                name="item-weight"
-                value={formState.weight}
-                onChange={handleChange}
-                placeholder="e.g., 250g, 500ml"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="item-imageFile">Image (Optional)</Label>
-              <Input
-                name="item-imageFile"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="item-weight">Weight/Size (Optional)</Label>
+            <Input
+              name="item-weight"
+              value={formState.weight}
+              onChange={handleChange}
+              placeholder="e.g., 250g, 500ml"
+            />
           </div>
-          {formState.imageUrl && !imageFile && (
-            <div className="space-y-2">
-              <Label>Current Image URL</Label>
-              <p className="text-sm text-gray-500 break-all">{formState.imageUrl}</p>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="item-imageUrl">Image URL (Optional)</Label>
+            <Input
+              name="item-imageUrl"
+              value={formState.imageUrl}
+              onChange={handleChange}
+              placeholder="Enter image URL"
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
