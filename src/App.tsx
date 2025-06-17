@@ -34,23 +34,24 @@ const App = () => {
     },
   }));
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          console.log("Supabase auth state changed: session set", event);
-          supabase.auth.setSession(session);
-        } else {
-          console.log("Supabase auth state changed: session cleared", event);
-          supabase.auth.signOut(); // Clear session if no session exists
-        }
-      }
-    );
+  // Temporarily commenting out Supabase auth state change listener to diagnose UI freeze
+  // useEffect(() => {
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  //     async (event, session) => {
+  //       if (session) {
+  //         console.log("Supabase auth state changed: session set", event);
+  //         supabase.auth.setSession(session);
+  //       } else {
+  //         console.log("Supabase auth state changed: session cleared", event);
+  //         // supabase.auth.signOut(); // Clear session if no session exists
+  //       }
+  //     }
+  //   );
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  //   return () => {
+  //     subscription.unsubscribe();
+  //   };
+  // }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
