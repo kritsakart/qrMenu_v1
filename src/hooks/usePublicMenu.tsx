@@ -16,7 +16,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
   useEffect(() => {
     const fetchMenuData = async () => {
       if (!locationId || !tableId) {
-        console.log("🔍 PUBLIC MENU: Missing locationId or tableId:", { locationId, tableId });
+        // console.log("🔍 PUBLIC MENU: Missing locationId or tableId:", { locationId, tableId });
         setIsLoading(false);
         return;
       }
@@ -25,29 +25,29 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
         setIsLoading(true);
         setError(null);
 
-        console.log("🔍 PUBLIC MENU: Starting fetch for location:", locationId, "tableId from URL:", tableId);
-        console.log("🔍 PUBLIC MENU: Full URL:", window.location.href);
+        // console.log("🔍 PUBLIC MENU: Starting fetch for location:", locationId, "tableId from URL:", tableId);
+        // console.log("🔍 PUBLIC MENU: Full URL:", window.location.href);
 
-        // First, let's see what locations exist in the database
-        console.log("🔍 PUBLIC MENU: Checking all locations in database...");
-        const { data: allLocations, error: allLocationsError } = await supabase
-          .from('locations')
-          .select('*');
+        // Remove initial fetch for all locations as it can be a performance bottleneck
+        // console.log("🔍 PUBLIC MENU: Checking all locations in database...");
+        // const { data: allLocations, error: allLocationsError } = await supabase
+        //   .from('locations')
+        //   .select('*');
         
-        console.log("🔍 PUBLIC MENU: All locations in database:", allLocations?.map(loc => ({
-          id: loc.id,
-          name: loc.name,
-          cafe_id: loc.cafe_id
-        })));
-        if (allLocationsError) {
-          console.error("❌ PUBLIC MENU: Error fetching all locations:", allLocationsError);
-        }
+        // console.log("🔍 PUBLIC MENU: All locations in database:", allLocations?.map(loc => ({
+        //   id: loc.id,
+        //   name: loc.name,
+        //   cafe_id: loc.cafe_id
+        // })));
+        // if (allLocationsError) {
+        //   console.error("❌ PUBLIC MENU: Error fetching all locations:", allLocationsError);
+        // }
 
-        setAllLocations(allLocations || []);
+        // setAllLocations(allLocations || []);
 
         // Fetch location data
-        console.log("🔍 PUBLIC MENU: Looking for specific location:", locationId);
-        console.log("🔍 PUBLIC MENU: SQL Query:", `SELECT * FROM locations WHERE id = '${locationId}'`);
+        // console.log("🔍 PUBLIC MENU: Looking for specific location:", locationId);
+        // console.log("🔍 PUBLIC MENU: SQL Query:", `SELECT * FROM locations WHERE id = '${locationId}'`);
         
         const { data: locationData, error: locationError } = await supabase
           .from('locations')
@@ -55,25 +55,25 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           .eq('id', locationId)
           .maybeSingle();
 
-        console.log("🔍 PUBLIC MENU: Raw location data from database:", locationData);
-        console.log("🔍 PUBLIC MENU: Location error if any:", locationError);
+        // console.log("🔍 PUBLIC MENU: Raw location data from database:", locationData);
+        // console.log("🔍 PUBLIC MENU: Location error if any:", locationError);
 
         if (locationError) {
-          console.error("❌ PUBLIC MENU: Location error:", locationError);
+          // console.error("❌ PUBLIC MENU: Location error:", locationError);
           throw new Error(`Помилка пошуку локації: ${locationError.message}`);
         }
 
         if (!locationData) {
-          console.error("❌ PUBLIC MENU: Location not found for ID:", locationId);
-          console.log("🔍 PUBLIC MENU: Available locations:", allLocations?.map(l => ({ 
-            id: l.id, 
-            name: l.name,
-            cafe_id: l.cafe_id 
-          })));
-          throw new Error(`Локацію з ID ${locationId} не знайдено. Доступні локації: ${allLocations?.map(l => l.name).join(', ')}`);
+          // console.error("❌ PUBLIC MENU: Location not found for ID:", locationId);
+          // console.log("🔍 PUBLIC MENU: Available locations:", allLocations?.map(l => ({ 
+          //   id: l.id, 
+          //   name: l.name,
+          //   cafe_id: l.cafe_id 
+          // })));
+          throw new Error(`Локацію з ID ${locationId} не знайдено.`);
         }
 
-        console.log("✅ PUBLIC MENU: Location found:", locationData);
+        // console.log("✅ PUBLIC MENU: Location found:", locationData);
         setLocation({
           id: locationData.id,
           cafeId: locationData.cafe_id,
@@ -88,9 +88,9 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           .select('id, name, location_id, qr_code, qr_code_url, created_at')
           .eq('location_id', locationId);
         
-        console.log("🔍 PUBLIC MENU: All tables for location:", allTables);
+        // console.log("🔍 PUBLIC MENU: All tables for location:", allTables);
         if (allTablesError) {
-          console.error("❌ PUBLIC MENU: Error fetching tables for location:", allTablesError);
+          // console.error("❌ PUBLIC MENU: Error fetching tables for location:", allTablesError);
         }
 
         // Find table by matching the tableId (timestamp) with the qr_code_url
@@ -99,23 +99,23 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           // Extract timestamp from qr_code_url
           const urlParts = table.qr_code_url?.split('/');
           const timestampFromUrl = urlParts?.[urlParts.length - 1];
-          console.log("🔍 PUBLIC MENU: Comparing tableId:", tableId, "with timestamp from URL:", timestampFromUrl, "for table:", table.name);
+          // console.log("🔍 PUBLIC MENU: Comparing tableId:", tableId, "with timestamp from URL:", timestampFromUrl, "for table:", table.name);
           return timestampFromUrl === tableId;
         });
 
-        console.log("🔍 PUBLIC MENU: Found matching table:", matchingTable);
+        // console.log("🔍 PUBLIC MENU: Found matching table:", matchingTable);
 
         if (!matchingTable) {
-          console.error("❌ PUBLIC MENU: Table not found for timestamp:", tableId, "in location:", locationId);
-          console.log("🔍 PUBLIC MENU: Available tables with their URLs:", allTables?.map(t => ({ 
-            name: t.name, 
-            qr_code_url: t.qr_code_url,
-            extractedTimestamp: t.qr_code_url?.split('/').pop()
-          })));
+          // console.error("❌ PUBLIC MENU: Table not found for timestamp:", tableId, "in location:", locationId);
+          // console.log("🔍 PUBLIC MENU: Available tables with their URLs:", allTables?.map(t => ({ 
+          //   name: t.name, 
+          //   qr_code_url: t.qr_code_url,
+          //   extractedTimestamp: t.qr_code_url?.split('/').pop()
+          // })));
           throw new Error(`Столик не знайдено. Можливо QR-код застарів або пошкоджений.`);
         }
 
-        console.log("✅ PUBLIC MENU: Table found:", matchingTable);
+        // console.log("✅ PUBLIC MENU: Table found:", matchingTable);
         setTable({
           id: matchingTable.id,
           locationId: matchingTable.location_id,
@@ -133,11 +133,11 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           .order('order');
 
         if (categoriesError) {
-          console.error("❌ PUBLIC MENU: Categories error:", categoriesError);
+          // console.error("❌ PUBLIC MENU: Categories error:", categoriesError);
           throw new Error(`Помилка завантаження категорій: ${categoriesError.message}`);
         }
 
-        console.log("✅ PUBLIC MENU: Categories found:", categoriesData);
+        // console.log("✅ PUBLIC MENU: Categories found:", categoriesData);
         const mappedCategories = (categoriesData || []).map(cat => ({
           id: cat.id,
           cafeId: cat.cafe_id,
@@ -156,11 +156,11 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
             .in('category_id', categoryIds);
 
           if (itemsError) {
-            console.error("❌ PUBLIC MENU: Items error:", itemsError);
+            // console.error("❌ PUBLIC MENU: Items error:", itemsError);
             throw new Error(`Помилка завантаження страв: ${itemsError.message}`);
           }
 
-          console.log("✅ PUBLIC MENU: Items found:", itemsData);
+          // console.log("✅ PUBLIC MENU: Items found:", itemsData);
           const mappedItems = (itemsData || []).map(item => ({
             id: item.id,
             categoryId: item.category_id,
@@ -173,11 +173,11 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           }));
           setMenuItems(mappedItems);
         } else {
-          console.log("🔍 PUBLIC MENU: No categories found, setting empty menu items");
+          // console.log("🔍 PUBLIC MENU: No categories found, setting empty menu items");
           setMenuItems([]);
         }
       } catch (err) {
-        console.error("❌ PUBLIC MENU: Error fetching data:", err);
+        // console.error("❌ PUBLIC MENU: Error fetching data:", err);
         const error = err instanceof Error ? err : new Error('Невідома помилка');
         setError(error);
         toast({
