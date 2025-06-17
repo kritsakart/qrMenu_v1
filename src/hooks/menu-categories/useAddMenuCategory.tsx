@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MenuCategory } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { testRLSDisabled, testCategoryInsert } from "@/utils/testRLS";
 
 export const useAddMenuCategory = (
   categories: MenuCategory[],
@@ -28,6 +29,22 @@ export const useAddMenuCategory = (
     }
     
     try {
+      // Спочатку протестуємо RLS
+      const rlsTest = await testRLSDisabled();
+      console.log("🧪 RLS Test Result:", rlsTest);
+      
+      if (!rlsTest.success) {
+        console.warn("⚠️ RLS test failed, but continuing anyway:", rlsTest.error);
+      }
+      
+      // Протестуємо вставку категорії
+      const insertTest = await testCategoryInsert(user.cafeId, `Test-${Date.now()}`);
+      console.log("🧪 Insert Test Result:", insertTest);
+      
+      if (!insertTest.success) {
+        throw new Error(`Тест вставки провалився: ${insertTest.error}`);
+      }
+      
       const newOrder = order !== undefined ? order : categories.length + 1;
       
       console.log("🆕 DIAGNOSTIC: Adding new category:", { 
@@ -36,7 +53,7 @@ export const useAddMenuCategory = (
         order: newOrder 
       });
       
-      // Простий INSERT запит без RLS контексту
+      // Використовуємо стандартний клієнт (RLS відключено)
       const { data, error } = await supabase
         .from("menu_categories")
         .insert({

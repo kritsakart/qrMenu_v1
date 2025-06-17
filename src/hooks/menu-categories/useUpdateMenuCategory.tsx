@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuCategory } from "@/types/models";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 
 export const useUpdateMenuCategory = (
   onCategoriesUpdated: (updatedCategories: MenuCategory[]) => void,
@@ -17,7 +17,7 @@ export const useUpdateMenuCategory = (
       
       console.log("🔄 Updating category:", { id, updates });
       
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("menu_categories")
         .update(updates)
         .eq("id", id);

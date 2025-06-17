@@ -1,10 +1,10 @@
-
 import { ReactNode } from "react";
 
 export type AppUser = {
   id: string;
+  email: string;
   username: string;
-  role: "super_admin" | "cafe_owner";
+  role: "super_admin" | "cafe_owner" | "public";
   cafeId?: string;
 };
 

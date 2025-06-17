@@ -45,7 +45,9 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
     }
 
     try {
-      console.log("🔧 DIAGNOSTIC: Setting user context for RLS:", user.id);
+      console.log("🔧 DIAGNOSTIC: Adding menu item to category:", categoryId);
+      
+      console.log("🔧 DIAGNOSTIC: Proceeding directly to insert without category check");
       
       // Create a properly formatted object for Supabase insert
       const itemData = {
@@ -64,16 +66,12 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
         type: typeof itemData[key as keyof typeof itemData]
       })));
 
-      // Use direct RPC call with user context in the same transaction
-      const { error: insertError, data: insertData } = await supabase.rpc('insert_menu_item_with_user_context', {
-        p_user_id: user.id,
-        p_category_id: categoryId,
-        p_name: data.name.trim(),
-        p_description: (data.description && data.description.trim() !== '') ? data.description.trim() : null,
-        p_price: Number(data.price),
-        p_weight: (data.weight && data.weight.trim() !== '') ? data.weight.trim() : null,
-        p_image_url: (data.imageUrl && data.imageUrl.trim() !== '') ? data.imageUrl.trim() : null
-      });
+      // Використовуємо стандартний клієнт (RLS відключено)
+      const { error: insertError, data: insertData } = await supabase
+        .from("menu_items")
+        .insert(itemData)
+        .select()
+        .single();
 
       if (insertError) {
         console.error("❌ DIAGNOSTIC: Supabase RPC error:", insertError);
@@ -86,19 +84,18 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
         throw new Error(`Помилка додавання пункту меню: ${insertError.message}`);
       }
 
-      if (insertData && insertData.length > 0) {
-        const item = insertData[0];
-        console.log("✅ DIAGNOSTIC: Data returned from RPC:", item);
+      if (insertData) {
+        console.log("✅ DIAGNOSTIC: Data returned from insert:", insertData);
         
         const newItem: MenuItem = {
-          id: item.id,
-          categoryId: item.category_id,
-          name: item.name,
-          description: item.description || undefined,
-          price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
-          weight: item.weight || undefined,
-          imageUrl: item.image_url || undefined,
-          createdAt: item.created_at
+          id: insertData.id,
+          categoryId: insertData.category_id,
+          name: insertData.name,
+          description: insertData.description || undefined,
+          price: typeof insertData.price === 'string' ? parseFloat(insertData.price) : insertData.price,
+          weight: insertData.weight || undefined,
+          imageUrl: insertData.image_url || undefined,
+          createdAt: insertData.created_at
         };
 
         console.log("📝 DIAGNOSTIC: Adding item to local state:", newItem);

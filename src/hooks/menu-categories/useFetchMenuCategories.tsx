@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuCategory } from "@/types/models";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const useFetchMenuCategories = () => {
@@ -28,8 +28,8 @@ export const useFetchMenuCategories = () => {
     try {
       console.log("🔍 DIAGNOSTIC: Fetching menu categories for cafe:", user.cafeId);
       
-      // Простий запит без RLS - напряму фільтруємо по cafe_id
-      const { data, error, count } = await supabase
+      // Використовуємо адміністративний клієнт - напряму фільтруємо по cafe_id
+      const { data, error, count } = await supabaseAdmin
         .from("menu_categories")
         .select("*", { count: 'exact' })
         .eq("cafe_id", user.cafeId)

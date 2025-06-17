@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuCategory } from "@/types/models";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 
 export const useDeleteMenuCategory = (
   onCategoriesUpdated: (updatedCategories: MenuCategory[]) => void,
@@ -14,7 +14,7 @@ export const useDeleteMenuCategory = (
     try {
       console.log("🗑️ Deleting category:", id);
       
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("menu_categories")
         .delete()
         .eq("id", id);

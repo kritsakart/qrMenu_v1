@@ -137,7 +137,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
   };
   
   // MenuItem handlers
-  const handleAddMenuItem = async (formData: MenuItemFormState) => {
+  const handleAddMenuItem = async (formData: MenuItemFormState): Promise<MenuItem | undefined> => {
     console.log("🎯 DIAGNOSTIC: handleAddMenuItem - selectedCategoryId:", selectedCategoryId);
     console.log("🎯 DIAGNOSTIC: handleAddMenuItem - formData:", formData);
     
@@ -148,7 +148,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         title: "Помилка",
         description: "Необхідно вибрати категорію для додавання пункту меню",
       });
-      return;
+      return undefined;
     }
     
     if (formData.name.trim() === "") {
@@ -157,7 +157,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         title: "Помилка",
         description: "Назва пункту меню не може бути порожньою",
       });
-      return;
+      return undefined;
     }
     
     const price = parseFloat(formData.price);
@@ -167,7 +167,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         title: "Помилка",
         description: "Ціна повинна бути додатним числом",
       });
-      return;
+      return undefined;
     }
     
     try {
@@ -193,6 +193,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         return menuItem;
       } else {
         console.log("❌ DIAGNOSTIC: handleAddMenuItem - не вдалось додати пункт меню");
+        return undefined;
       }
     } catch (err) {
       console.error("❌ DIAGNOSTIC: handleAddMenuItem - помилка при додаванні пункту меню:", err);
@@ -201,11 +202,12 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         title: "Помилка додавання пункту меню",
         description: err instanceof Error ? err.message : "Невідома помилка",
       });
+      return undefined;
     }
   };
   
-  const handleUpdateMenuItem = async (formData: MenuItemFormState) => {
-    if (!selectedMenuItem) return;
+  const handleUpdateMenuItem = async (formData: MenuItemFormState): Promise<boolean | undefined> => {
+    if (!selectedMenuItem) return undefined;
     
     if (formData.name.trim() === "") {
       toast({
@@ -213,7 +215,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         title: "Помилка",
         description: "Назва пункту меню не може бути порожньою",
       });
-      return;
+      return undefined;
     }
     
     const price = parseFloat(formData.price);
@@ -223,7 +225,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         title: "Помилка",
         description: "Ціна повинна бути додатним числом",
       });
-      return;
+      return undefined;
     }
     
     const success = await updateMenuItem(selectedMenuItem.id, {
@@ -237,8 +239,8 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
     return success;
   };
   
-  const handleDeleteMenuItem = async () => {
-    if (!selectedMenuItem) return;
+  const handleDeleteMenuItem = async (): Promise<boolean | undefined> => {
+    if (!selectedMenuItem) return undefined;
     
     const success = await deleteMenuItem(selectedMenuItem.id);
     return success;

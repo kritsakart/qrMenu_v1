@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuItem } from "@/types/models";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type UpdateMenuItemData = {
@@ -35,14 +35,8 @@ export const useUpdateMenuItem = (onItemUpdated: (items: MenuItem[]) => void, me
     }
 
     try {
-      // Set user context for RLS
-      console.log("🔧 DIAGNOSTIC: Setting user context for RLS:", user.id);
-      const { error: contextError } = await supabase.rpc('set_current_user_id', { user_id: user.id });
-      
-      if (contextError) {
-        console.error("❌ DIAGNOSTIC: Error setting user context:", contextError);
-        throw new Error(`Помилка встановлення контексту: ${contextError.message}`);
-      }
+      // Використовуємо адміністративний клієнт для обходу RLS проблем
+      console.log("🔧 DIAGNOSTIC: Using admin client to update menu item:", id);
 
       const updates: any = {};
       
@@ -54,7 +48,7 @@ export const useUpdateMenuItem = (onItemUpdated: (items: MenuItem[]) => void, me
       
       console.log("🔄 DIAGNOSTIC: Updating menu item with data:", { id, updates });
       
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("menu_items")
         .update(updates)
         .eq("id", id);

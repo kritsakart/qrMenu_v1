@@ -1,7 +1,6 @@
-
 import { AppUser } from "@/types/auth";
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
-import { saveUserToStorage } from "./useStoredUser";
+import { setStoredUser } from "./useStoredUser";
 
 /**
  * Function to fetch full cafe owner data
@@ -33,9 +32,10 @@ export const fetchCafeOwnerData = async (ownerId: string): Promise<AppUser> => {
       username: cafeOwner.username,
       role: "cafe_owner",
       cafeId: cafeOwner.id,
+      email: cafeOwner.email,
     };
 
-    saveUserToStorage(cafeOwnerData);
+    setStoredUser(cafeOwnerData);
     return cafeOwnerData;
   } catch (error) {
     console.error("Error in fetchCafeOwnerData:", error);

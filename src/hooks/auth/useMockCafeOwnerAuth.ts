@@ -1,7 +1,6 @@
-
 import { AppUser } from "@/types/auth";
 import { mockCafeOwners } from "@/data/mockData";
-import { saveUserToStorage } from "./useStoredUser";
+import { setStoredUser } from "./useStoredUser";
 
 /**
  * Function to handle mock cafe owner login
@@ -37,9 +36,10 @@ export const handleMockCafeOwnerLogin = (username: string): AppUser | null => {
       username: cafeOwner.username,
       role: "cafe_owner",
       cafeId: cafeOwner.id,
+      email: `${cafeOwner.username}@mock.com`,
     };
 
-    saveUserToStorage(userData);
+    setStoredUser(userData);
     return userData;
   }
   

@@ -1,6 +1,5 @@
-
 import { AppUser } from "@/types/auth";
-import { saveUserToStorage } from "./useStoredUser";
+import { setStoredUser } from "./useStoredUser";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -25,9 +24,11 @@ export const handleAdminLogin = async (username: string, password: string): Prom
           id: "admin-1",
           username: "admin",
           role: "super_admin",
+          email: "admin@example.com",
+          cafeId: undefined,
         };
 
-        saveUserToStorage(userData);
+        setStoredUser(userData);
         return userData;
       }
       
@@ -36,9 +37,11 @@ export const handleAdminLogin = async (username: string, password: string): Prom
         id: data.user?.id || "admin-1",
         username: "admin",
         role: "super_admin",
+        email: data.user?.email || "admin@example.com",
+        cafeId: undefined,
       };
 
-      saveUserToStorage(userData);
+      setStoredUser(userData);
       return userData;
     } catch (error) {
       console.error("Error in admin authentication:", error);
@@ -48,9 +51,11 @@ export const handleAdminLogin = async (username: string, password: string): Prom
         id: "admin-1",
         username: "admin",
         role: "super_admin",
+        email: "admin@example.com",
+        cafeId: undefined,
       };
 
-      saveUserToStorage(userData);
+      setStoredUser(userData);
       return userData;
     }
   }

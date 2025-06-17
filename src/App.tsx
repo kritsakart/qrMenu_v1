@@ -34,16 +34,22 @@ const App = () => {
     },
   }));
 
-  // Temporarily commenting out Supabase auth state change listener to diagnose UI freeze
+  // Ensuring Supabase auth state change listener is fully functional
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Supabase auth state changed: ", event, session);
         if (session) {
-          console.log("Supabase auth state changed: session set", event);
-          supabase.auth.setSession(session);
+          console.log("Supabase auth state changed: session set, refreshing user data");
+          // Ensure the session is set and user data is refreshed in AuthContext
+          await supabase.auth.setSession(session);
+          await supabase.auth.refreshSession(); // Оновити сесію, якщо потрібно
+          await supabase.auth.getUser(); // Оновити дані користувача
         } else {
-          console.log("Supabase auth state changed: session cleared", event);
-          // supabase.auth.signOut(); // Clear session if no session exists
+          console.log("Supabase auth state changed: session cleared");
+          // Це має оброблятися в useAuthState через onAuthStateChange
+          // Але для впевненості можна також очистити сесію тут, якщо необхідно
+          // supabase.auth.signOut(); 
         }
       }
     );
