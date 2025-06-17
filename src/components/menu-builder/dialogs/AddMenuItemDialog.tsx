@@ -52,6 +52,21 @@ export const AddMenuItemDialog = ({
   const uploadImage = async (): Promise<string | undefined> => {
     if (!imageFile) return undefined;
 
+    // Додаємо логування стану сесії перед завантаженням
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log("Session before upload:", session);
+    console.log("User before upload:", user);
+
+    if (!session) {
+      toast({
+        variant: "destructive",
+        title: "Помилка автентифікації",
+        description: "Користувач не автентифікований. Будь ласка, увійдіть знову.",
+      });
+      return undefined;
+    }
+
     const fileExt = imageFile.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`;
