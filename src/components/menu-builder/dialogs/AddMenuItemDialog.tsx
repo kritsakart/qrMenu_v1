@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MenuItem } from "@/types/models";
 import { MenuItemFormState } from "./types";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { nanoid } from "nanoid";
 
 interface AddMenuItemDialogProps {
   isOpen: boolean;
@@ -14,12 +17,13 @@ interface AddMenuItemDialogProps {
   categoryName: string;
 }
 
-export const AddMenuItemDialog = ({ 
-  isOpen, 
-  onOpenChange, 
+export const AddMenuItemDialog = ({
+  isOpen,
+  onOpenChange,
   onAddMenuItem,
   categoryName
 }: AddMenuItemDialogProps) => {
+  const { toast } = useToast();
   const [formState, setFormState] = useState<MenuItemFormState>({
     name: "",
     description: "",
@@ -27,6 +31,8 @@ export const AddMenuItemDialog = ({
     weight: "",
     imageUrl: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -37,8 +43,73 @@ export const AddMenuItemDialog = ({
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    } else {
+      setImageFile(null);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    setIsUploading(true);
+    const fileExtension = imageFile.name.split('.').pop();
+    const filePath = `public/${nanoid()}.${fileExtension}`;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('menu-images')
+        .upload(filePath, imageFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("❌ DIAGNOSTIC: Supabase image upload error:", error);
+        throw new Error(`Помилка завантаження зображення: ${error.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('menu-images')
+        .getPublicUrl(filePath);
+
+      if (publicUrlData) {
+        console.log("✅ DIAGNOSTIC: Image uploaded, public URL:", publicUrlData.publicUrl);
+        return publicUrlData.publicUrl;
+      }
+      return null;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Невідома помилка');
+      console.error("❌ DIAGNOSTIC: Error during image upload:", error);
+      toast({
+        variant: "destructive",
+        title: "Помилка завантаження зображення",
+        description: error.message
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = async () => {
-    const result = await onAddMenuItem(formState);
+    let imageUrlToSave: string | null = formState.imageUrl || null;
+
+    if (imageFile) {
+      imageUrlToSave = await uploadImage();
+      if (!imageUrlToSave) {
+        // If image upload failed, stop the process
+        return;
+      }
+    }
+
+    const result = await onAddMenuItem({
+      ...formState,
+      imageUrl: imageUrlToSave || undefined,
+    });
+
     if (result) {
       setFormState({
         name: "",
@@ -47,6 +118,7 @@ export const AddMenuItemDialog = ({
         weight: "",
         imageUrl: "",
       });
+      setImageFile(null);
       onOpenChange(false);
     }
   };
@@ -110,12 +182,24 @@ export const AddMenuItemDialog = ({
               placeholder="Enter image URL"
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="item-image-upload">Upload Image (Optional)</Label>
+            <Input
+              id="item-image-upload"
+              name="item-image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Add Menu Item</Button>
+          <Button onClick={handleSubmit} disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Add Menu Item"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
