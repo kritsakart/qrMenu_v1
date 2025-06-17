@@ -39,10 +39,10 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
             const itemIndex = updatedItems.findIndex(item => item.id === payload.new.id);
             
             if (itemIndex >= 0) {
-              // Оновлюємо існуючий товар
+                             // Оновлюємо існуючий товар
               updatedItems[itemIndex] = {
                 ...updatedItems[itemIndex],
-                order: payload.new.order || 0
+                order: payload.new.order !== undefined ? payload.new.order : updatedItems[itemIndex].order || 0
               };
               
               console.log('📦 PUBLIC MENU: Updated item order:', {
@@ -264,11 +264,26 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
         // Fetch all menu items for these categories
         if (mappedCategories.length > 0) {
           const categoryIds = mappedCategories.map(cat => cat.id);
-          const { data: itemsData, error: itemsError } = await supabase
+          
+          // Спочатку спробуємо завантажити з сортуванням за order
+          let { data: itemsData, error: itemsError } = await supabase
             .from('menu_items')
             .select('*')
             .in('category_id', categoryIds)
-            .order('order'); // Сортуємо за полем order з бази даних
+            .order('order');
+          
+          // Якщо помилка через відсутність поля order, завантажуємо без сортування
+          if (itemsError && itemsError.message.includes('column "order" does not exist')) {
+            console.log('⚠️ PUBLIC MENU: Order column does not exist, loading without order');
+            const fallbackResult = await supabase
+              .from('menu_items')
+              .select('*')
+              .in('category_id', categoryIds)
+              .order('created_at');
+            
+            itemsData = fallbackResult.data;
+            itemsError = fallbackResult.error;
+          }
 
           if (itemsError) {
             // console.error("❌ PUBLIC MENU: Items error:", itemsError);

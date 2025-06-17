@@ -160,7 +160,13 @@ export const MenuItemList = ({
   onDeleteItem,
 }: MenuItemListProps) => {
   const filteredItems = selectedCategoryId 
-    ? menuItems.filter(item => item.categoryId === selectedCategoryId).sort((a, b) => (a.order || 0) - (b.order || 0))
+    ? menuItems.filter(item => item.categoryId === selectedCategoryId).sort((a, b) => {
+        // Fallback на created_at якщо order не існує
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      })
     : [];
   
   console.log("🔍 MenuItemList Debug:", {

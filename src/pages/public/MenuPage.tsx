@@ -235,7 +235,13 @@ const MenuPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {menuItems
                       .filter((item) => item.categoryId === category.id)
-                      .sort((a, b) => (a.order || 0) - (b.order || 0))
+                      .sort((a, b) => {
+                        // Fallback на created_at якщо order не існує
+                        if (a.order !== undefined && b.order !== undefined) {
+                          return a.order - b.order;
+                        }
+                        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                      })
                       .map((item) => (
                         <Card key={item.id} className="overflow-hidden flex flex-col">
                           <CardContent className="p-4 flex flex-row items-center justify-between flex-grow">
