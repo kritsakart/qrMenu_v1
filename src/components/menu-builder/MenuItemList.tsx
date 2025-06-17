@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MenuItem } from "@/types/models";
-import { Edit, Trash } from "lucide-react";
+import { Edit, Trash, Image as ImageIcon } from "lucide-react";
+import { useState } from "react";
 
 interface MenuItemListProps {
   title: string;
@@ -12,6 +12,28 @@ interface MenuItemListProps {
   onEditItem: (item: MenuItem) => void;
   onDeleteItem: (item: MenuItem) => void;
 }
+
+const MenuItemImage = ({ imageUrl, itemName }: { imageUrl?: string; itemName: string }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  if (!imageUrl || imageError) {
+    return (
+      <div className="w-full h-40 bg-gray-100 flex items-center justify-center">
+        <ImageIcon className="w-12 h-12 text-gray-400" />
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={imageUrl}
+      alt={itemName}
+      className="w-full h-40 object-cover transition-opacity duration-200 hover:opacity-90"
+      onError={() => setImageError(true)}
+      loading="lazy"
+    />
+  );
+};
 
 export const MenuItemList = ({
   title,
@@ -43,26 +65,26 @@ export const MenuItemList = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-full h-40 object-cover"
-                  />
-                )}
+              <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                <MenuItemImage imageUrl={item.imageUrl} itemName={item.name} />
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <div className="text-lg font-medium">{item.price.toFixed(2)} грн</div>
+                    <h3 className="font-semibold text-lg truncate pr-2">{item.name}</h3>
+                    <div className="text-lg font-bold text-green-600 whitespace-nowrap">
+                      ₴{item.price.toFixed(2)}
+                    </div>
                   </div>
                   {item.description && (
-                    <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      {item.description}
+                    </p>
                   )}
                   {item.weight && (
-                    <p className="text-xs text-muted-foreground">{item.weight}</p>
+                    <p className="text-xs text-muted-foreground bg-gray-100 rounded px-2 py-1 inline-block">
+                      {item.weight}
+                    </p>
                   )}
-                  <div className="flex justify-end space-x-2 mt-4">
+                  <div className="flex justify-end space-x-2 mt-4 pt-2 border-t border-gray-100">
                     <Button
                       variant="outline"
                       size="sm"

@@ -8,7 +8,43 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { OrderItem } from "@/types/models";
 import { usePublicMenu } from "@/hooks/usePublicMenu";
-import { Loader2 } from "lucide-react";
+import { Loader2, Image as ImageIcon } from "lucide-react";
+
+const MenuItemImage = ({ imageUrl, itemName, size = "md" }: { 
+  imageUrl?: string; 
+  itemName: string;
+  size?: "sm" | "md"
+}) => {
+  const [imageError, setImageError] = useState(false);
+  
+  const sizeClasses = {
+    sm: "w-10 h-10",
+    md: "w-24 h-24"
+  };
+  
+  const iconSizes = {
+    sm: "w-4 h-4",
+    md: "w-8 h-8"
+  };
+  
+  if (!imageUrl || imageError) {
+    return (
+      <div className={`${sizeClasses[size]} bg-gray-100 flex items-center justify-center rounded border`}>
+        <ImageIcon className={`${iconSizes[size]} text-gray-400`} />
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={imageUrl}
+      alt={itemName}
+      className={`${sizeClasses[size]} object-cover rounded border`}
+      onError={() => setImageError(true)}
+      loading="lazy"
+    />
+  );
+};
 
 const MenuPage = () => {
   const { locationId, tableId } = useParams<{ locationId: string, tableId: string }>();
@@ -216,15 +252,13 @@ const MenuPage = () => {
                                 )}
                               </div>
                             </div>
-                            {item.imageUrl && (
-                              <div className="w-24 h-24 flex-shrink-0 ml-4">
-                                <img
-                                  src={item.imageUrl}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover rounded"
-                                />
-                              </div>
-                            )}
+                            <div className="flex-shrink-0 ml-4">
+                              <MenuItemImage 
+                                imageUrl={item.imageUrl} 
+                                itemName={item.name}
+                                size="md"
+                              />
+                            </div>
                           </CardContent>
                           <div className="p-4 pt-0">
                             <Button 
@@ -268,15 +302,15 @@ const MenuPage = () => {
                     // Знаходимо відповідний menuItem для отримання imageUrl
                     const menuItem = menuItems.find(mi => mi.id === item.menuItemId);
                     return (
-                      <div key={item.id} className="flex justify-between items-start pb-4 border-b">
+                                              <div key={item.id} className="flex justify-between items-start pb-4 border-b">
                         <div className="flex items-center">
-                          {menuItem?.imageUrl && (
-                            <img
-                              src={menuItem.imageUrl}
-                              alt={item.name}
-                              className="w-10 h-10 object-cover rounded mr-2 border"
+                          <div className="mr-2">
+                            <MenuItemImage 
+                              imageUrl={menuItem?.imageUrl} 
+                              itemName={item.name}
+                              size="sm"
                             />
-                          )}
+                          </div>
                           <div>
                             <div className="flex items-center">
                               <span className="font-medium">{item.quantity}x </span>
