@@ -203,18 +203,9 @@ const MenuPage = () => {
                     {menuItems
                       .filter((item) => item.categoryId === category.id)
                       .map((item) => (
-                        <Card key={item.id} className="overflow-hidden">
-                          {item.imageUrl && (
-                            <div className="h-48 overflow-hidden">
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
-                          <CardContent className="p-4 flex flex-col">
-                            <div>
+                        <Card key={item.id} className="overflow-hidden flex flex-col">
+                          <CardContent className="p-4 flex flex-row items-center justify-between flex-grow">
+                            <div className="flex-1 pr-4">
                               <h3 className="text-lg font-semibold mb-1">{item.name}</h3>
                               {item.description && (
                                 <p className="text-sm text-gray-600 mb-2">{item.description}</p>
@@ -228,15 +219,24 @@ const MenuPage = () => {
                                 )}
                               </div>
                             </div>
-                            <div className="mt-auto pt-4">
-                              <Button 
-                                className="w-full" 
-                                onClick={() => addToCart(item)}
-                              >
-                                Додати до замовлення
-                              </Button>
-                            </div>
+                            {item.imageUrl && (
+                              <div className="w-24 h-24 flex-shrink-0 ml-4">
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover rounded"
+                                />
+                              </div>
+                            )}
                           </CardContent>
+                          <div className="p-4 pt-0">
+                            <Button 
+                              className="w-full" 
+                              onClick={() => addToCart(item)}
+                            >
+                              Додати до замовлення
+                            </Button>
+                          </div>
                         </Card>
                       ))}
                   </div>
