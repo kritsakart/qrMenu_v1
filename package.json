@@ -1,8 +1,11 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "qr-menu-builder",
+  "description": "Professional QR Menu Builder for Cafes and Restaurants",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "keywords": ["qr-menu", "restaurant", "cafe", "digital-menu", "menu-builder"],
+  "author": "Digital Menu Solutions",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

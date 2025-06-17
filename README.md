@@ -1,73 +1,51 @@
-# Welcome to your Lovable project
+# QR Menu Builder 🍽️
 
-## Project info
+Професійна система управління цифровим меню для кафе та ресторанів з QR кодами та real-time оновленнями.
 
-**URL**: https://lovable.dev/projects/ba8803ab-958c-4beb-8833-f34621480c97
+## ✨ Особливості
 
-## How can I edit this code?
+- 🎯 **QR коди для столиків** - автоматична генерація QR кодів для кожного столика
+- 🎨 **Drag & Drop редагування** - легке перестановка товарів меню перетягуванням
+- 📱 **Real-time синхронізація** - зміни миттєво відображаються на всіх пристроях клієнтів
+- 🖼️ **Завантаження фото** - додавайте привабливі зображення до ваших страв
+- 📊 **Адміністративна панель** - повний контроль над меню, категоріями та локаціями
+- 🔄 **Cross-device оновлення** - зміни на комп'ютері відображаються на телефонах клієнтів
+- 🏢 **Мультилокаційність** - керування меню для кількох локацій
 
-There are several ways of editing your application.
+## 🚀 Технології
 
-**Use Lovable**
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI**: Tailwind CSS + shadcn/ui компоненти
+- **Backend**: Supabase (PostgreSQL + Real-time)
+- **Deployment**: Vercel
+- **Icons**: Lucide React
+- **Drag & Drop**: @dnd-kit
+- **Forms**: React Hook Form + Zod
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ba8803ab-958c-4beb-8833-f34621480c97) and start prompting.
+## 📱 Як використовувати
 
-Changes made via Lovable will be committed automatically to this repo.
+1. **Адміністратор** входить в систему та керує меню
+2. **QR код** генерується для кожного столика
+3. **Клієнти** сканують QR код та бачать актуальне меню
+4. **Real-time оновлення** забезпечують синхронізацію між пристроями
 
-**Use your preferred IDE**
+## 🛠️ Розробка
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```bash
+# Клонування репозиторію
+git clone https://github.com/kritsakart/qrMenu_v1.git
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# Встановлення залежностей
+npm install
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Запуск локального сервера
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📄 Ліцензія
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+MIT License - дивіться файл LICENSE для деталей.
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ba8803ab-958c-4beb-8833-f34621480c97) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Створено з ❤️ для індустрії гостинності
