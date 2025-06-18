@@ -4,7 +4,7 @@ import PublicLayout from "@/components/layouts/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { OrderItem, MenuItem } from "@/types/models";
 import { usePublicMenu } from "@/hooks/usePublicMenu";
@@ -302,7 +302,9 @@ const MenuPage = () => {
 
         {/* Menu Item Detail Dialog */}
         <Dialog open={isMenuItemDialogOpen} onOpenChange={setIsMenuItemDialogOpen}>
-          <DialogContent className="max-w-md p-0 gap-0">
+          <DialogPortal>
+            <DialogOverlay />
+            <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-hidden">
             {selectedMenuItem && (
               <>
                 {/* Image section with proper aspect ratio */}
@@ -346,9 +348,10 @@ const MenuPage = () => {
                     Додати в кошик
                   </Button>
                 </div>
-              </>
-            )}
-          </DialogContent>
+                              </>
+              )}
+            </div>
+          </DialogPortal>
         </Dialog>
 
         {/* Cart Dialog */}
