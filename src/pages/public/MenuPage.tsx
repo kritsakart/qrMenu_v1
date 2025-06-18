@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { OrderItem } from "@/types/models";
+import { OrderItem, MenuItem } from "@/types/models";
 import { usePublicMenu } from "@/hooks/usePublicMenu";
 import { Loader2, Image as ImageIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const MenuItemImage = ({ imageUrl, itemName, size = "md" }: { 
   imageUrl?: string; 
@@ -68,6 +69,8 @@ const MenuPage = () => {
   const [isCartDialogOpen, setIsCartDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isOrderSuccessDialogOpen, setIsOrderSuccessDialogOpen] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [isMenuItemDialogOpen, setIsMenuItemDialogOpen] = useState(false);
 
   // Set first category as selected when categories load
   useEffect(() => {
@@ -119,6 +122,18 @@ const MenuPage = () => {
     setIsPaymentDialogOpen(false);
     setIsOrderSuccessDialogOpen(true);
     setCart([]);
+  };
+
+  const openMenuItemDialog = (item: MenuItem) => {
+    setSelectedMenuItem(item);
+    setIsMenuItemDialogOpen(true);
+  };
+
+  const addToCartFromDialog = () => {
+    if (selectedMenuItem) {
+      addToCart(selectedMenuItem);
+      setIsMenuItemDialogOpen(false);
+    }
   };
 
   // Show error state
@@ -243,7 +258,11 @@ const MenuPage = () => {
                         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
                       })
                       .map((item) => (
-                        <Card key={item.id} className="overflow-hidden flex flex-col">
+                        <Card 
+                          key={item.id} 
+                          className="overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow" 
+                          onClick={() => openMenuItemDialog(item)}
+                        >
                           <CardContent className="p-4 flex flex-row items-center justify-between flex-grow">
                             <div className="flex-1 pr-4">
                               <h3 className="text-lg font-semibold mb-1">{item.name}</h3>
@@ -267,14 +286,6 @@ const MenuPage = () => {
                               />
                             </div>
                           </CardContent>
-                          <div className="p-4 pt-0">
-                            <Button 
-                              className="w-full" 
-                              onClick={() => addToCart(item)}
-                            >
-                              Додати до замовлення
-                            </Button>
-                          </div>
                         </Card>
                       ))}
                   </div>
@@ -288,6 +299,57 @@ const MenuPage = () => {
             </Tabs>
           )}
         </main>
+
+        {/* Menu Item Detail Dialog */}
+        <Dialog open={isMenuItemDialogOpen} onOpenChange={setIsMenuItemDialogOpen}>
+          <DialogContent className="max-w-md p-0 gap-0">
+            {selectedMenuItem && (
+              <>
+                {/* Image section with proper aspect ratio */}
+                <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                  {selectedMenuItem.imageUrl ? (
+                    <img 
+                      src={selectedMenuItem.imageUrl} 
+                      alt={selectedMenuItem.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-gray-400 text-6xl">🍽️</div>
+                  )}
+                  <button 
+                    onClick={() => setIsMenuItemDialogOpen(false)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-white bg-opacity-80 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                {/* Content section */}
+                <div className="p-6 space-y-4">
+                  <div>
+                    <h2 className="text-xl font-bold mb-2">{selectedMenuItem.name}</h2>
+                    <p className="text-sm text-gray-600 mb-3">{selectedMenuItem.description}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-2xl font-bold text-primary">
+                        {selectedMenuItem.price.toFixed(2)} грн
+                      </span>
+                      {selectedMenuItem.weight && (
+                        <span className="text-sm text-gray-500">{selectedMenuItem.weight}</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={addToCartFromDialog}
+                    className="w-full bg-black hover:bg-gray-800 text-white"
+                  >
+                    Додати в кошик
+                  </Button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Cart Dialog */}
         <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
@@ -354,6 +416,7 @@ const MenuPage = () => {
               <Button 
                 onClick={handleCheckout}
                 disabled={cart.length === 0}
+                className="bg-black hover:bg-gray-800 text-white"
               >
                 Оформити замовлення
               </Button>
@@ -375,7 +438,7 @@ const MenuPage = () => {
                 <p className="text-sm text-muted-foreground mb-6">
                   У реальному додатку тут буде інтеграція з платіжною системою
                 </p>
-                <Button onClick={handlePayment} className="w-full">
+                <Button onClick={handlePayment} className="w-full bg-black hover:bg-gray-800 text-white">
                   Оплатити зараз
                 </Button>
               </div>
@@ -403,7 +466,7 @@ const MenuPage = () => {
             </div>
             <DialogFooter>
               <Button 
-                className="w-full" 
+                className="w-full bg-black hover:bg-gray-800 text-white" 
                 onClick={() => setIsOrderSuccessDialogOpen(false)}
               >
                 Повернутися до меню
