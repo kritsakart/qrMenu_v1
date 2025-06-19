@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { MenuItem } from "@/types/models";
+import { MenuItem, MenuItemVariant } from "@/types/models";
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -60,6 +60,7 @@ export const useFetchMenuItems = (categoryId?: string) => {
           price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
           weight: item.weight || undefined,
           imageUrl: item.image_url || undefined,
+          variants: item.variants as MenuItemVariant[] || undefined,
           order: item.order || 0,
           createdAt: item.created_at
         }));

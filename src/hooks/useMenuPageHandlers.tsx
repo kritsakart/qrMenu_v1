@@ -180,12 +180,21 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
         imageUrl: formData.imageUrl.trim() || undefined,
       });
       
+      // Конвертуємо варіанти з форми в правильний формат
+      const variants = formData.variants ? formData.variants.map(v => ({
+        id: v.id,
+        name: v.name,
+        price: parseFloat(v.price) || 0,
+        isDefault: v.isDefault
+      })) : undefined;
+
       const menuItem = await addMenuItem(selectedCategoryId, {
         name: formData.name,
         description: formData.description.trim() || undefined,
         price: price,
         weight: formData.weight.trim() || undefined,
         imageUrl: formData.imageUrl.trim() || undefined,
+        variants: variants,
       });
       
       if (menuItem) {
@@ -228,12 +237,21 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
       return undefined;
     }
     
+    // Конвертуємо варіанти з форми в правильний формат
+    const variants = formData.variants ? formData.variants.map(v => ({
+      id: v.id,
+      name: v.name,
+      price: parseFloat(v.price) || 0,
+      isDefault: v.isDefault
+    })) : undefined;
+
     const success = await updateMenuItem(selectedMenuItem.id, {
       name: formData.name,
       description: formData.description.trim() || undefined,
       price: price,
       weight: formData.weight.trim() || undefined,
       imageUrl: formData.imageUrl.trim() || undefined,
+      variants: variants,
     });
     
     return success;

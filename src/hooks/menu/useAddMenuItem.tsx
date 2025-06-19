@@ -1,7 +1,7 @@
 
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { MenuItem } from "@/types/models";
+import { MenuItem, MenuItemVariant } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -11,6 +11,7 @@ export type AddMenuItemData = {
   price: number;
   weight?: string;
   imageUrl?: string;
+  variants?: MenuItemVariant[];
 };
 
 export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
@@ -68,6 +69,7 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
         price: Number(data.price),
         weight: (data.weight && data.weight.trim() !== '') ? data.weight.trim() : null,
         image_url: (data.imageUrl && data.imageUrl.trim() !== '') ? data.imageUrl.trim() : null,
+        variants: data.variants && data.variants.length > 0 ? data.variants : null,
         order: nextOrder
       };
 
@@ -107,6 +109,7 @@ export const useAddMenuItem = (onItemAdded: (item: MenuItem) => void) => {
           price: typeof insertData.price === 'string' ? parseFloat(insertData.price) : insertData.price,
           weight: insertData.weight || undefined,
           imageUrl: insertData.image_url || undefined,
+          variants: insertData.variants as MenuItemVariant[] || undefined,
           order: insertData.order || 0,
           createdAt: insertData.created_at
         };

@@ -1,7 +1,7 @@
 
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { MenuItem } from "@/types/models";
+import { MenuItem, MenuItemVariant } from "@/types/models";
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -11,6 +11,7 @@ export type UpdateMenuItemData = {
   price?: number;
   weight?: string;
   imageUrl?: string;
+  variants?: MenuItemVariant[];
 };
 
 export const useUpdateMenuItem = (onItemUpdated: (items: MenuItem[]) => void, menuItems: MenuItem[]) => {
@@ -45,6 +46,7 @@ export const useUpdateMenuItem = (onItemUpdated: (items: MenuItem[]) => void, me
       if (data.price !== undefined) updates.price = data.price; // Ensure this is a number
       if (data.weight !== undefined) updates.weight = data.weight || null;
       if (data.imageUrl !== undefined) updates.image_url = data.imageUrl || null;
+      if (data.variants !== undefined) updates.variants = data.variants && data.variants.length > 0 ? data.variants : null;
       
       console.log("🔄 DIAGNOSTIC: Updating menu item with data:", { id, updates });
       
@@ -66,7 +68,8 @@ export const useUpdateMenuItem = (onItemUpdated: (items: MenuItem[]) => void, me
               ...(data.description !== undefined ? { description: data.description } : {}),
               ...(data.price !== undefined ? { price: data.price } : {}),
               ...(data.weight !== undefined ? { weight: data.weight } : {}),
-              ...(data.imageUrl !== undefined ? { imageUrl: data.imageUrl } : {})
+              ...(data.imageUrl !== undefined ? { imageUrl: data.imageUrl } : {}),
+              ...(data.variants !== undefined ? { variants: data.variants } : {})
             }
           : item
       );

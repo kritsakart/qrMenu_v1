@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { MenuCategory, MenuItem, Location, Table } from "@/types/models";
+import { MenuCategory, MenuItem, Location, Table, MenuItemVariant } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 
 export const usePublicMenu = (locationId: string, tableId: string) => {
@@ -299,6 +299,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
             price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
             weight: item.weight || undefined,
             imageUrl: item.image_url || undefined,
+            variants: item.variants ? (Array.isArray(item.variants) ? item.variants as MenuItemVariant[] : undefined) : undefined,
             order: item.order || 0,
             createdAt: item.created_at
           }));

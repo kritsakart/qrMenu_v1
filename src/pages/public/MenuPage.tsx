@@ -70,6 +70,7 @@ const MenuPage = () => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isOrderSuccessDialogOpen, setIsOrderSuccessDialogOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [isMenuItemDialogOpen, setIsMenuItemDialogOpen] = useState(false);
 
   // Set first category as selected when categories load
@@ -126,12 +127,47 @@ const MenuPage = () => {
 
   const openMenuItemDialog = (item: MenuItem) => {
     setSelectedMenuItem(item);
+    // Встановлюємо дефолтний варіант якщо є варіанти
+    if (item.variants && item.variants.length > 0) {
+      const defaultVariant = item.variants.find(v => v.isDefault) || item.variants[0];
+      setSelectedVariant(defaultVariant.id);
+    } else {
+      setSelectedVariant(null);
+    }
     setIsMenuItemDialogOpen(true);
   };
 
   const addToCartFromDialog = () => {
     if (selectedMenuItem) {
-      addToCart(selectedMenuItem);
+      // Обчислюємо фінальну ціну з урахуванням варіанту
+      let finalPrice = selectedMenuItem.price;
+      let finalName = selectedMenuItem.name;
+      
+      if (selectedVariant && selectedMenuItem.variants) {
+        const variant = selectedMenuItem.variants.find(v => v.id === selectedVariant);
+        if (variant) {
+          // Додаємо ціну варіанту до базової ціни
+          finalPrice += variant.price;
+          finalName += ` (${variant.name})`;
+        }
+      }
+      
+      const cartItem: OrderItem = {
+        id: `order-item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        menuItemId: selectedMenuItem.id,
+        name: finalName,
+        price: finalPrice,
+        quantity: 1,
+        selectedOptions: []
+      };
+      
+      setCart([...cart, cartItem]);
+      
+      toast({
+        title: "Додано до замовлення",
+        description: `${finalName} додано до вашого замовлення.`,
+      });
+      
       setIsMenuItemDialogOpen(false);
     }
   };
@@ -271,7 +307,20 @@ const MenuPage = () => {
                               )}
                               <div className="flex justify-between items-center">
                                 <span className="text-primary font-medium text-lg">
-                                  ${item.price.toFixed(2)}
+                                  ${(() => {
+                                    // Завжди починаємо з базової ціни
+                                    let finalPrice = item.price;
+                                    
+                                    // Якщо є варіанти і є дефолтний варіант, додаємо його ціну
+                                    if (item.variants && item.variants.length > 0) {
+                                      const defaultVariant = item.variants.find(v => v.isDefault);
+                                      if (defaultVariant) {
+                                        finalPrice += defaultVariant.price;
+                                      }
+                                    }
+                                    
+                                    return finalPrice.toFixed(2);
+                                  })()}
                                 </span>
                                 {item.weight && (
                                   <span className="text-xs text-gray-500">{item.weight}</span>
@@ -331,21 +380,77 @@ const MenuPage = () => {
                   <div>
                     <h2 className="text-xl font-bold mb-2">{selectedMenuItem.name}</h2>
                     <p className="text-sm text-gray-600 mb-3">{selectedMenuItem.description}</p>
-                    <div className="flex justify-between items-center">
-                                             <span className="text-2xl font-bold text-primary">
-                         ${selectedMenuItem.price.toFixed(2)}
-                       </span>
+                    
+                    {/* Price display */}
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-2xl font-bold text-primary">
+                        ${(() => {
+                          // Завжди починаємо з базової ціни
+                          let finalPrice = selectedMenuItem.price;
+                          
+                          // Якщо є варіанти та вибрано якийсь варіант
+                          if (selectedMenuItem.variants && selectedMenuItem.variants.length > 0 && selectedVariant) {
+                            const variant = selectedMenuItem.variants.find(v => v.id === selectedVariant);
+                            if (variant) {
+                              // Додаємо ціну вибраного варіанту до базової ціни
+                              finalPrice += variant.price;
+                            }
+                          } else if (selectedMenuItem.variants && selectedMenuItem.variants.length > 0) {
+                            // Якщо нічого не вибрано, додаємо дефолтний варіант
+                            const defaultVariant = selectedMenuItem.variants.find(v => v.isDefault);
+                            if (defaultVariant) {
+                              finalPrice += defaultVariant.price;
+                            }
+                          }
+                          
+                          return finalPrice.toFixed(2);
+                        })()}
+                      </span>
                       {selectedMenuItem.weight && (
                         <span className="text-sm text-gray-500">{selectedMenuItem.weight}</span>
                       )}
                     </div>
+
+                    {/* Variants selection */}
+                    {selectedMenuItem.variants && selectedMenuItem.variants.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        <h3 className="font-medium text-sm text-gray-700">Choose variant:</h3>
+                        <div className="space-y-2">
+                          {selectedMenuItem.variants.map((variant) => (
+                            <div 
+                              key={variant.id}
+                              className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                                selectedVariant === variant.id 
+                                  ? 'border-primary bg-primary/5' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => setSelectedVariant(variant.id)}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">{variant.name}</span>
+                                <span className="text-sm">
+                                  {variant.isDefault 
+                                    ? `$${(selectedMenuItem.price + variant.price).toFixed(2)}` 
+                                    : variant.price === 0 
+                                      ? 'No extra charge' 
+                                      : variant.price > 0 
+                                        ? `+$${variant.price.toFixed(2)}`
+                                        : `-$${Math.abs(variant.price).toFixed(2)}`
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <Button 
                     onClick={addToCartFromDialog}
-                    className="w-full bg-black hover:bg-gray-800 text-white"
+                    className="w-full bg-black hover:bg-gray-800 text-white h-12"
                   >
-                    Додати в кошик
+                    Add to Cart
                   </Button>
                 </div>
                               </>

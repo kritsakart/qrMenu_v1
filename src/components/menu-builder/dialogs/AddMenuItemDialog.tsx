@@ -5,12 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MenuItem } from "@/types/models";
-import { MenuItemFormState } from "./types";
+import { MenuItemFormState, MenuItemVariantForm } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 import { nanoid } from "nanoid";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
 
 interface AddMenuItemDialogProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export const AddMenuItemDialog = ({
     weight: "",
     weightUnit: "oz",
     imageUrl: "",
+    variants: [],
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -44,6 +46,45 @@ export const AddMenuItemDialog = ({
     setFormState(prev => ({
       ...prev,
       [fieldName]: value
+    }));
+  };
+
+  const addVariant = () => {
+    const newVariant: MenuItemVariantForm = {
+      id: nanoid(),
+      name: "",
+      price: "0",
+      isDefault: formState.variants.length === 0
+    };
+    setFormState(prev => ({
+      ...prev,
+      variants: [...prev.variants, newVariant]
+    }));
+  };
+
+  const removeVariant = (variantId: string) => {
+    setFormState(prev => ({
+      ...prev,
+      variants: prev.variants.filter(v => v.id !== variantId)
+    }));
+  };
+
+  const updateVariant = (variantId: string, field: keyof MenuItemVariantForm, value: string | boolean) => {
+    setFormState(prev => ({
+      ...prev,
+      variants: prev.variants.map(v => 
+        v.id === variantId ? { ...v, [field]: value } : v
+      )
+    }));
+  };
+
+  const setDefaultVariant = (variantId: string) => {
+    setFormState(prev => ({
+      ...prev,
+      variants: prev.variants.map(v => ({
+        ...v,
+        isDefault: v.id === variantId
+      }))
     }));
   };
 
@@ -157,11 +198,24 @@ export const AddMenuItemDialog = ({
       ? `${formState.weight.trim()} ${formState.weightUnit}`
       : "";
 
-    const result = await onAddMenuItem({
+    // Конвертуємо варіанти
+    const variants = formState.variants.map(v => ({
+      id: v.id,
+      name: v.name,
+      price: parseFloat(v.price) || 0,
+      isDefault: v.isDefault
+    }));
+
+    const submitData = {
       ...formState,
       weight: weightWithUnit,
       imageUrl: imageUrlToSave || undefined,
-    });
+    };
+
+    // @ts-ignore - тимчасово ігноруємо помилку типу для variants
+    submitData.variants = variants;
+
+    const result = await onAddMenuItem(submitData);
 
     if (result) {
       // Очищаємо форму після успішного додавання
@@ -172,6 +226,7 @@ export const AddMenuItemDialog = ({
         weight: "",
         weightUnit: "oz",
         imageUrl: "",
+        variants: [],
       });
       setImageFile(null);
       setImagePreview(null);
@@ -252,6 +307,83 @@ export const AddMenuItemDialog = ({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Product Variants Section */}
+          <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Product Variants (optional)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addVariant}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Variant
+              </Button>
+            </div>
+            
+            {formState.variants.length > 0 && (
+              <div className="space-y-3">
+                {formState.variants.map((variant, index) => (
+                  <div key={variant.id} className="border rounded-lg p-3 bg-white">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Variant {index + 1}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeVariant(variant.id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <div>
+                        <Label className="text-xs">Name</Label>
+                        <Input
+                          value={variant.name}
+                          onChange={(e) => updateVariant(variant.id, 'name', e.target.value)}
+                          placeholder="e.g., White Bread, Large"
+                          className="h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Price Adjustment</Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={variant.price}
+                            onChange={(e) => updateVariant(variant.id, 'price', e.target.value)}
+                            placeholder="0.00"
+                            className="pl-6 h-8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`default-${variant.id}`}
+                        checked={variant.isDefault}
+                        onCheckedChange={() => setDefaultVariant(variant.id)}
+                      />
+                      <Label htmlFor={`default-${variant.id}`} className="text-xs">
+                        Default variant
+                      </Label>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-gray-500">
+                  Price adjustments are added to the base price. Use negative values for discounts.
+                </p>
+              </div>
+            )}
           </div>
           
           {/* Секція для зображення */}

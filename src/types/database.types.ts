@@ -7,91 +7,75 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          query?: string
+          operationName?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       cafe_owners: {
         Row: {
-          created_at: string
+          created_at: string | null
           email: string
           id: string
           name: string
-          password: string
-          status: string
-          username: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           email: string
           id?: string
           name: string
-          password: string
-          status: string
-          username: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           email?: string
           id?: string
           name?: string
-          password?: string
-          status?: string
-          username?: string
         }
         Relationships: []
       }
-      locations: {
-        Row: {
-          address: string
-          cafe_id: string
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          address: string
-          cafe_id: string
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          address?: string
-          cafe_id?: string
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "locations_cafe_id_fkey"
-            columns: ["cafe_id"]
-            isOneToOne: false
-            referencedRelation: "cafe_owners"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       menu_categories: {
         Row: {
-          cafe_id: string
-          created_at: string
+          cafe_id: string | null
+          created_at: string | null
+          description: string | null
           id: string
           name: string
-          order: number
         }
         Insert: {
-          cafe_id: string
-          created_at?: string
+          cafe_id?: string | null
+          created_at?: string | null
+          description?: string | null
           id?: string
           name: string
-          order: number
         }
         Update: {
-          cafe_id?: string
-          created_at?: string
+          cafe_id?: string | null
+          created_at?: string | null
+          description?: string | null
           id?: string
           name?: string
-          order?: number
         }
         Relationships: [
           {
@@ -103,74 +87,39 @@ export type Database = {
           },
         ]
       }
-      menu_item_options: {
-        Row: {
-          id: string
-          menu_item_id: string
-          multi_select: boolean
-          name: string
-          options: Json
-          required: boolean
-        }
-        Insert: {
-          id?: string
-          menu_item_id: string
-          multi_select?: boolean
-          name: string
-          options: Json
-          required?: boolean
-        }
-        Update: {
-          id?: string
-          menu_item_id?: string
-          multi_select?: boolean
-          name?: string
-          options?: Json
-          required?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "menu_item_options_menu_item_id_fkey"
-            columns: ["menu_item_id"]
-            isOneToOne: false
-            referencedRelation: "menu_items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       menu_items: {
         Row: {
-          category_id: string
-          created_at: string
+          category_id: string | null
+          created_at: string | null
           description: string | null
           id: string
           image_url: string | null
           name: string
-          order: number
+          order: number | null
           price: number
           variants: Json | null
           weight: string | null
         }
         Insert: {
-          category_id: string
-          created_at?: string
+          category_id?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           name: string
-          order?: number
+          order?: number | null
           price: number
           variants?: Json | null
           weight?: string | null
         }
         Update: {
-          category_id?: string
-          created_at?: string
+          category_id?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
           name?: string
-          order?: number
+          order?: number | null
           price?: number
           variants?: Json | null
           weight?: string | null
@@ -185,85 +134,31 @@ export type Database = {
           },
         ]
       }
-      orders: {
-        Row: {
-          created_at: string
-          id: string
-          items: Json
-          location_id: string
-          status: string
-          table_id: string
-          total: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          items: Json
-          location_id: string
-          status: string
-          table_id: string
-          total: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          items?: Json
-          location_id?: string
-          status?: string
-          table_id?: string
-          total?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_table_id_fkey"
-            columns: ["table_id"]
-            isOneToOne: false
-            referencedRelation: "tables"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       tables: {
         Row: {
-          created_at: string
+          cafe_id: string | null
+          created_at: string | null
           id: string
-          location_id: string
-          name: string
-          qr_code: string
-          qr_code_url: string
+          table_number: string
         }
         Insert: {
-          created_at?: string
+          cafe_id?: string | null
+          created_at?: string | null
           id?: string
-          location_id: string
-          name: string
-          qr_code: string
-          qr_code_url: string
+          table_number: string
         }
         Update: {
-          created_at?: string
+          cafe_id?: string | null
+          created_at?: string | null
           id?: string
-          location_id?: string
-          name?: string
-          qr_code?: string
-          qr_code_url?: string
+          table_number?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tables_location_id_fkey"
-            columns: ["location_id"]
+            foreignKeyName: "tables_cafe_id_fkey"
+            columns: ["cafe_id"]
             isOneToOne: false
-            referencedRelation: "locations"
+            referencedRelation: "cafe_owners"
             referencedColumns: ["id"]
           },
         ]
@@ -273,31 +168,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      insert_menu_item_with_user_context: {
-        Args: {
-          p_user_id: string
-          p_category_id: string
-          p_name: string
-          p_price: number
-          p_description?: string
-          p_weight?: string
-          p_image_url?: string
-        }
-        Returns: {
-          id: string
-          category_id: string
-          name: string
-          description: string
-          price: number
-          weight: string
-          image_url: string
-          created_at: string
-        }[]
-      }
-      set_current_user_id: {
-        Args: { user_id: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
@@ -414,7 +285,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

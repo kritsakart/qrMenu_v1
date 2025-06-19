@@ -46,6 +46,14 @@ export type MenuItem = {
   imageUrl?: string;
   order: number;
   createdAt: string;
+  variants?: MenuItemVariant[];
+};
+
+export type MenuItemVariant = {
+  id: string;
+  name: string; // наприклад, "White Bread", "Whole Wheat", "Large", "Medium"
+  price: number; // Додаткова ціна відносно базової (може бути 0 або навіть мінусова)
+  isDefault?: boolean; // Чи є це варіант за замовчуванням
 };
 
 export type MenuItemOption = {
