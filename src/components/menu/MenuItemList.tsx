@@ -65,7 +65,7 @@ export const MenuItemList = ({
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold">{item.name}</h3>
-                    <div className="text-lg font-medium">{item.price.toFixed(2)} грн</div>
+                    <div className="text-lg font-medium">${item.price.toFixed(2)}</div>
                   </div>
                   {item.description && (
                     <p className="text-sm text-muted-foreground mb-2">{item.description}</p>

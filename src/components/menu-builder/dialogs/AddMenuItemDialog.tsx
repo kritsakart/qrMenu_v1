@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MenuItem } from "@/types/models";
 import { MenuItemFormState } from "./types";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +31,7 @@ export const AddMenuItemDialog = ({
     description: "",
     price: "",
     weight: "",
+    weightUnit: "oz",
     imageUrl: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -150,8 +152,14 @@ export const AddMenuItemDialog = ({
       }
     }
 
+    // Формуємо вагу з одиницею вимірювання
+    const weightWithUnit = formState.weight.trim() 
+      ? `${formState.weight.trim()} ${formState.weightUnit}`
+      : "";
+
     const result = await onAddMenuItem({
       ...formState,
+      weight: weightWithUnit,
       imageUrl: imageUrlToSave || undefined,
     });
 
@@ -162,6 +170,7 @@ export const AddMenuItemDialog = ({
         description: "",
         price: "",
         weight: "",
+        weightUnit: "oz",
         imageUrl: "",
       });
       setImageFile(null);
@@ -176,66 +185,82 @@ export const AddMenuItemDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Додати товар до меню</DialogTitle>
+          <DialogTitle>Add Product to Menu</DialogTitle>
           <DialogDescription>
-            Створити новий товар для категорії "{categoryName}".
+            Create a new product for category "{categoryName}".
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="item-name">Назва товару*</Label>
+              <Label htmlFor="item-name">Product Name*</Label>
               <Input
                 name="item-name"
                 value={formState.name}
                 onChange={handleChange}
-                placeholder="Введіть назву товару"
+                placeholder="Enter product name"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="item-price">Ціна*</Label>
-              <Input
-                name="item-price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formState.price}
-                onChange={handleChange}
-                placeholder="0.00"
-                required
-              />
+              <Label htmlFor="item-price">Price*</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <Input
+                  name="item-price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formState.price}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                  className="pl-8"
+                  required
+                />
+              </div>
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="item-description">Опис (опціонально)</Label>
+            <Label htmlFor="item-description">Description (optional)</Label>
             <Textarea
               name="item-description"
               value={formState.description}
               onChange={handleChange}
-              placeholder="Введіть опис товару"
+              placeholder="Enter product description"
               rows={3}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="item-weight">Вага/Розмір (опціонально)</Label>
-            <Input
-              name="item-weight"
-              value={formState.weight}
-              onChange={handleChange}
-              placeholder="наприклад: 250г, 500мл"
-            />
+            <Label>Weight/Size (optional)</Label>
+            <div className="flex gap-2">
+              <Input
+                name="item-weight"
+                value={formState.weight}
+                onChange={handleChange}
+                placeholder="e.g., 8.5"
+                className="flex-1"
+              />
+              <Select value={formState.weightUnit} onValueChange={(value) => setFormState(prev => ({ ...prev, weightUnit: value }))}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="oz">oz</SelectItem>
+                  <SelectItem value="lb">lb</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {/* Секція для зображення */}
           <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
-            <Label className="text-base font-medium">Зображення товару (опціонально)</Label>
+            <Label className="text-base font-medium">Product Image (optional)</Label>
             
             {/* Завантаження файлу */}
             <div className="space-y-2">
-              <Label htmlFor="item-image-upload" className="text-sm">Завантажити з пристрою</Label>
+              <Label htmlFor="item-image-upload" className="text-sm">Upload from device</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="item-image-upload"
@@ -245,23 +270,23 @@ export const AddMenuItemDialog = ({
                   onChange={handleImageChange}
                   className="flex-1"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => document.getElementById('item-image-upload')?.click()}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Вибрати
-                </Button>
+                                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('item-image-upload')?.click()}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Select
+                  </Button>
               </div>
-              <p className="text-xs text-gray-500">Максимальний розмір: 5MB. Формати: JPG, PNG, GIF</p>
+              <p className="text-xs text-gray-500">Max size: 5MB. Formats: JPG, PNG, GIF</p>
             </div>
             
             {/* Превью зображення */}
             {imagePreview && (
               <div className="relative">
-                <Label className="text-sm">Превью зображення</Label>
+                <Label className="text-sm">Image preview</Label>
                 <div className="relative inline-block mt-2">
                   <img 
                     src={imagePreview} 
@@ -284,7 +309,7 @@ export const AddMenuItemDialog = ({
             {/* Альтернативно: URL зображення */}
             {!imageFile && (
               <div className="space-y-2">
-                <Label htmlFor="item-imageUrl" className="text-sm">Або введіть URL зображення</Label>
+                <Label htmlFor="item-imageUrl" className="text-sm">Or enter image URL</Label>
                 <Input
                   name="item-imageUrl"
                   value={formState.imageUrl}
@@ -298,18 +323,18 @@ export const AddMenuItemDialog = ({
         
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isUploading}>
-            Скасувати
+            Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isUploading}>
             {isUploading ? (
               <>
                 <Upload className="w-4 h-4 mr-2 animate-spin" />
-                Завантаження...
+                Uploading...
               </>
             ) : (
               <>
                 <ImageIcon className="w-4 h-4 mr-2" />
-                Додати товар
+                Add Product
               </>
             )}
           </Button>

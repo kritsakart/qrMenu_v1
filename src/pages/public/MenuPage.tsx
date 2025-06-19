@@ -271,7 +271,7 @@ const MenuPage = () => {
                               )}
                               <div className="flex justify-between items-center">
                                 <span className="text-primary font-medium text-lg">
-                                  {item.price.toFixed(2)} грн
+                                  ${item.price.toFixed(2)}
                                 </span>
                                 {item.weight && (
                                   <span className="text-xs text-gray-500">{item.weight}</span>
@@ -332,9 +332,9 @@ const MenuPage = () => {
                     <h2 className="text-xl font-bold mb-2">{selectedMenuItem.name}</h2>
                     <p className="text-sm text-gray-600 mb-3">{selectedMenuItem.description}</p>
                     <div className="flex justify-between items-center">
-                      <span className="text-2xl font-bold text-primary">
-                        {selectedMenuItem.price.toFixed(2)} грн
-                      </span>
+                                             <span className="text-2xl font-bold text-primary">
+                         ${selectedMenuItem.price.toFixed(2)}
+                       </span>
                       {selectedMenuItem.weight && (
                         <span className="text-sm text-gray-500">{selectedMenuItem.weight}</span>
                       )}
@@ -392,7 +392,7 @@ const MenuPage = () => {
                         </div>
                         <div className="flex items-center space-x-4">
                           <div className="text-right">
-                            {(item.price * item.quantity).toFixed(2)} грн
+                            ${(item.price * item.quantity).toFixed(2)}
                           </div>
                           <Button
                             variant="ghost"
@@ -406,8 +406,8 @@ const MenuPage = () => {
                     );
                   })}
                   <div className="flex justify-between font-bold pt-4">
-                    <span>Всього</span>
-                    <span>{totalAmount.toFixed(2)} грн</span>
+                    <span>Total</span>
+                    <span>${totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
               )}
@@ -437,7 +437,7 @@ const MenuPage = () => {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="text-center py-4">
-                <p className="text-lg font-bold mb-4">Всього: {totalAmount.toFixed(2)} грн</p>
+                <p className="text-lg font-bold mb-4">Total: ${totalAmount.toFixed(2)}</p>
                 <p className="text-sm text-muted-foreground mb-6">
                   У реальному додатку тут буде інтеграція з платіжною системою
                 </p>

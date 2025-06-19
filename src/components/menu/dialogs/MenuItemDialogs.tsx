@@ -265,7 +265,7 @@ export const DeleteMenuItemDialog = ({
             <strong>Пункт:</strong> {menuItem?.name}
           </p>
           <p>
-            <strong>Ціна:</strong> {menuItem?.price.toFixed(2)} грн
+                          <strong>Price:</strong> ${menuItem?.price.toFixed(2)}
           </p>
         </div>
         <DialogFooter>

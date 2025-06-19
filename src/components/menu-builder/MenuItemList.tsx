@@ -107,7 +107,7 @@ const SortableMenuItem = ({ item, onEdit, onDelete }: SortableMenuItemProps) => 
             <div className="flex justify-between items-start mb-1">
               <h3 className="font-semibold text-base truncate pr-2">{item.name}</h3>
               <div className="text-base sm:text-lg font-bold text-green-600 whitespace-nowrap">
-                ₴{item.price.toFixed(2)}
+                ${item.price.toFixed(2)}
               </div>
             </div>
             
@@ -133,7 +133,7 @@ const SortableMenuItem = ({ item, onEdit, onDelete }: SortableMenuItemProps) => 
               className="w-16 sm:w-20 text-xs sm:text-sm px-2"
             >
               <Edit className="h-3 w-3 sm:mr-1" />
-              <span className="hidden sm:inline">Ред.</span>
+              <span className="hidden sm:inline">Edit</span>
             </Button>
             <Button
               variant="destructive"
@@ -142,7 +142,7 @@ const SortableMenuItem = ({ item, onEdit, onDelete }: SortableMenuItemProps) => 
               className="w-16 sm:w-20 text-xs sm:text-sm px-2"
             >
               <Trash className="h-3 w-3 sm:mr-1" />
-              <span className="hidden sm:inline">Вид.</span>
+              <span className="hidden sm:inline">Del</span>
             </Button>
           </div>
         </div>
@@ -290,16 +290,16 @@ export const MenuItemList = ({
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle>{title}</CardTitle>
-        <Button disabled={!selectedCategoryId} onClick={onAddItem}>Додати пункт</Button>
+        <Button disabled={!selectedCategoryId} onClick={onAddItem}>Add Item</Button>
       </CardHeader>
       <CardContent className="max-h-[500px] sm:max-h-[600px] overflow-y-auto custom-scrollbar">
         {!selectedCategoryId ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Виберіть або створіть категорію для керування пунктами меню.</p>
+            <p className="text-muted-foreground">Select or create a category to manage menu items.</p>
           </div>
         ) : localItems.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">У цій категорії ще немає пунктів меню. Додайте свій перший пункт.</p>
+            <p className="text-muted-foreground">This category has no menu items yet. Add your first item.</p>
           </div>
         ) : (
           <DndContext
