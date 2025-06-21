@@ -1,8 +1,13 @@
+# Food List - QR Menu Builder for Restaurants & Cafes
+# Professional digital menu management system
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +15,17 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
 User-agent: *
 Allow: /
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://foodlist.pro/sitemap.xml
+
+# SEO Keywords: food list, qr menu, digital menu, restaurant menu, cafe menu

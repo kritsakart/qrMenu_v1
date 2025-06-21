@@ -1,17 +1,28 @@
 {
-  "name": "qr-menu-builder",
-  "description": "Professional QR Menu Builder for Cafes and Restaurants",
+  "name": "food-list",
+  "description": "Food List - Professional QR Menu Builder for Restaurants and Cafes. Create digital menus, manage food lists, and provide contactless dining experience.",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "keywords": [
+    "food-list",
     "qr-menu",
     "restaurant",
     "cafe",
     "digital-menu",
-    "menu-builder"
+    "menu-builder",
+    "food-ordering",
+    "contactless-menu",
+    "restaurant-management",
+    "cafe-management",
+    "qr-code",
+    "mobile-menu",
+    "restaurant-pos",
+    "food-service",
+    "hospitality",
+    "menu-system"
   ],
-  "author": "Digital Menu Solutions",
+  "author": "Food List - Digital Menu Solutions",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

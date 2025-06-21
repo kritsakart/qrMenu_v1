@@ -1,5 +1,5 @@
 {
-  "name": "qr-menu-builder",
+  "name": "food-list",
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
@@ -41,6 +41,10 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow"
         }
       ]
     },
@@ -58,6 +62,10 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow"
         }
       ]
     }
