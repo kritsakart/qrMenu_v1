@@ -101,7 +101,7 @@ export default function BrandingPage() {
           <div 
             className="absolute w-[100px] h-[100px] bg-[#C80505] rounded-full flex items-center justify-center overflow-hidden"
             style={{
-              left: '45px', // Відступ 45px від лівого краю
+              left: '40px', // Зменшено на 5px (було 45px)
               top: '50%', // Центрування по висоті
               transform: 'translateY(-50%)' // Точне центрування по висоті
             }}
@@ -130,7 +130,7 @@ export default function BrandingPage() {
           <div 
             className="absolute"
             style={{
-              left: '170px', // Відступ від лівого краю (45px логотип + 100px ширина + 25px відступ)
+              left: '165px', // Зменшено на 5px (було 170px)
               top: '50%', // Центрування по висоті
               transform: 'translateY(-50%)', // Точне центрування по висоті
               right: '25px' // Відступ від правого краю
@@ -138,11 +138,12 @@ export default function BrandingPage() {
           >
             {/* Location Name */}
             <h2 
-              className="text-black text-[32px] font-bold leading-tight mb-1"
+              className="text-black text-[31px] font-bold leading-tight"
               style={{
                 fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                 fontWeight: 700,
-                letterSpacing: '-0.02em'
+                letterSpacing: '-0.02em',
+                marginBottom: '1px' // Зменшено на 5px (було 6px через mb-1)
               }}
             >
               {location.name}
@@ -150,7 +151,7 @@ export default function BrandingPage() {
             
             {/* Address */}
             <p 
-              className="text-black text-[16px] opacity-70"
+              className="text-black text-[15px] opacity-70"
               style={{
                 fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                 fontWeight: 400,
