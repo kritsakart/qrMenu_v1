@@ -356,7 +356,7 @@ const MenuPage = () => {
 
         {/* Menu Item Detail Dialog */}
         <Dialog open={isMenuItemDialogOpen} onOpenChange={setIsMenuItemDialogOpen}>
-          <DialogContent className="max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
+          <DialogContent className="max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col [&>button]:bg-white [&>button]:bg-opacity-80 [&>button]:rounded-full [&>button]:w-8 [&>button]:h-8 [&>button]:shadow-md [&>button]:hover:bg-opacity-100 [&>button]:transition-all">
             {selectedMenuItem && (
               <>
                 {/* Image section with proper aspect ratio */}
