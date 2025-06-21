@@ -17,6 +17,7 @@ import LocationsManagement from "@/pages/cafe-admin/LocationsManagement";
 import TablesManagement from "@/pages/cafe-admin/TablesManagement";
 import MenuBuilder from "@/pages/cafe-admin/MenuBuilder";
 import OrdersDashboard from "@/pages/cafe-admin/OrdersDashboard";
+import BrandingPage from "@/pages/public/BrandingPage";
 import MenuPage from "@/pages/public/MenuPage";
 import MenuPageAdmin from "@/pages/cafe-admin/MenuPage";
 import NotFound from "@/pages/NotFound";
@@ -69,6 +70,7 @@ const App = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/:locationShortId/:tableShortId" element={<BrandingPage />} />
               <Route path="/menu/:locationShortId/:tableShortId" element={<MenuPage />} />
               <Route path="/cafe-owners-table" element={<CafeOwnersTable />} />
               

@@ -1,6 +1,16 @@
--- Add order column to menu_categories table
-ALTER TABLE public.menu_categories 
-ADD COLUMN "order" INTEGER DEFAULT 0;
+-- Add order column to menu_categories table (only if it doesn't exist)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'menu_categories' 
+        AND column_name = 'order'
+        AND table_schema = 'public'
+    ) THEN
+        ALTER TABLE public.menu_categories 
+        ADD COLUMN "order" INTEGER DEFAULT 0;
+    END IF;
+END $$;
 
 -- Update existing categories with sequential order numbers
 UPDATE public.menu_categories 

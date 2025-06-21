@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Location } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
+import LocationBrandingDialog from "@/components/branding/LocationBrandingDialog";
 
 const LocationsManagement = () => {
   const { user } = useAuth();
@@ -36,6 +37,8 @@ const LocationsManagement = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isBrandingDialogOpen, setIsBrandingDialogOpen] = useState(false);
+  const [brandingLocation, setBrandingLocation] = useState<Location | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -101,6 +104,9 @@ const LocationsManagement = () => {
         name: loc.name,
         address: loc.address,
         shortId: loc.short_id || undefined,
+        coverImage: loc.cover_image || undefined,
+        logoImage: loc.logo_image || undefined,
+        promoImages: (loc.promo_images as any) || [],
         createdAt: loc.created_at
       })) || []);
       
@@ -251,6 +257,17 @@ const LocationsManagement = () => {
     navigate(`/cafe-admin/tables/${locationId}`);
   };
 
+  const openBrandingDialog = (location: Location) => {
+    setBrandingLocation(location);
+    setIsBrandingDialogOpen(true);
+  };
+
+  const handleLocationUpdate = (updatedLocation: Location) => {
+    setLocations(locations.map(loc => 
+      loc.id === updatedLocation.id ? updatedLocation : loc
+    ));
+  };
+
   return (
     <DashboardLayout title="Locations Management">
       <div className="mb-6 flex justify-between items-center">
@@ -339,6 +356,13 @@ const LocationsManagement = () => {
                           onClick={() => viewTables(location.id)}
                         >
                           Tables
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => openBrandingDialog(location)}
+                        >
+                          Branding
                         </Button>
                         <Button
                           variant="outline"
@@ -443,6 +467,14 @@ const LocationsManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Branding Dialog */}
+      <LocationBrandingDialog
+        location={brandingLocation}
+        isOpen={isBrandingDialogOpen}
+        onClose={() => setIsBrandingDialogOpen(false)}
+        onUpdate={handleLocationUpdate}
+      />
     </DashboardLayout>
   );
 };

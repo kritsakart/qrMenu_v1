@@ -214,6 +214,9 @@ export const usePublicMenu = (locationShortId: string, tableShortId: string) => 
           name: locationData.name,
           address: locationData.address,
           shortId: locationData.short_id,
+          coverImage: locationData.cover_image,
+          logoImage: locationData.logo_image,
+          promoImages: locationData.promo_images,
           createdAt: locationData.created_at
         });
 

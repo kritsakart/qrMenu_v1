@@ -43,25 +43,34 @@ export type Database = {
         Row: {
           address: string
           cafe_id: string
+          cover_image: string | null
           created_at: string
           id: string
+          logo_image: string | null
           name: string
+          promo_images: Json | null
           short_id: string
         }
         Insert: {
           address: string
           cafe_id: string
+          cover_image?: string | null
           created_at?: string
           id?: string
+          logo_image?: string | null
           name: string
+          promo_images?: Json | null
           short_id?: string
         }
         Update: {
           address?: string
           cafe_id?: string
+          cover_image?: string | null
           created_at?: string
           id?: string
+          logo_image?: string | null
           name?: string
+          promo_images?: Json | null
           short_id?: string
         }
         Relationships: [

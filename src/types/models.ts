@@ -1,4 +1,3 @@
-
 // Базові типи для наших моделей даних
 
 export type CafeOwner = {
@@ -17,7 +16,15 @@ export type Location = {
   name: string;
   address: string;
   shortId?: string; // Optional for backward compatibility
+  coverImage?: string; // URL to cover/logo image (recommended: 800x600px)
+  logoImage?: string; // URL to logo/avatar image (recommended: 200x200px)
+  promoImages?: PromoImage[]; // Array of promotion images for slideshow
   createdAt: string;
+};
+
+export type PromoImage = {
+  url: string;
+  title?: string;
 };
 
 export type Table = {
@@ -104,6 +111,9 @@ export const mapSupabaseLocation = (location: any): Location => ({
   name: location.name,
   address: location.address,
   shortId: location.short_id || undefined,
+  coverImage: location.cover_image || undefined,
+  logoImage: location.logo_image || undefined,
+  promoImages: location.promo_images || [],
   createdAt: location.created_at
 });
 

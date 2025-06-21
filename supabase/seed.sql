@@ -1,6 +1,6 @@
 -- Seed data for testing
-INSERT INTO public.cafe_owners (id, email, name) VALUES 
-  ('550e8400-e29b-41d4-a716-446655440000', 'owner@cafe.com', 'Test Cafe Owner');
+INSERT INTO public.cafe_owners (id, email, name, username, password) VALUES 
+  ('550e8400-e29b-41d4-a716-446655440000', 'owner@cafe.com', 'Test Cafe Owner', 'testowner', 'password123');
 
 INSERT INTO public.menu_categories (id, cafe_id, name, description) VALUES 
   ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'Main Dishes', 'Delicious main courses'),

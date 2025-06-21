@@ -106,7 +106,7 @@ export const useTablesManagement = (locationId: string) => {
       console.log("🔧 Table name:", tableName);
       
       // Check if short_id columns exist by trying to get location data
-      let qrCodeUrl = `/menu/${locationId}`; // fallback URL with location ID only
+      let qrCodeUrl = `/${locationId}`; // fallback URL with location ID only (branding page)
       let shortId = null;
       
       try {
@@ -119,7 +119,7 @@ export const useTablesManagement = (locationId: string) => {
         if (!locationError && locationData && locationData.short_id) {
           // If short_id exists, use it
           shortId = nanoid(6);
-          qrCodeUrl = `/menu/${locationData.short_id}/${shortId}`;
+          qrCodeUrl = `/${locationData.short_id}/${shortId}`;
           console.log("🔧 Using short IDs - Location short ID:", locationData.short_id, "Table short ID:", shortId);
         } else {
           console.log("🔧 Short IDs not available, using full UUIDs");
@@ -160,8 +160,8 @@ export const useTablesManagement = (locationId: string) => {
           // Short ID already included in URL
           finalQrCodeUrl = data.qr_code_url;
         } else {
-          // Add table ID to URL for full UUID version
-          finalQrCodeUrl = `/menu/${locationId}/${data.id}`;
+          // Add table ID to URL for full UUID version (branding page)
+          finalQrCodeUrl = `/${locationId}/${data.id}`;
         }
         
         // Update the table record with the correct QR code URL
