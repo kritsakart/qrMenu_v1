@@ -1,51 +1,119 @@
-# QR Menu Builder 🍽️
+# QR Menu Builder - FoodList.pro
 
-Професійна система управління цифровим меню для кафе та ресторанів з QR кодами та real-time оновленнями.
+A modern QR code menu system for restaurants and cafes, built with React, TypeScript, and Supabase.
 
-## ✨ Особливості
+## 🌐 Live Demo
 
-- 🎯 **QR коди для столиків** - автоматична генерація QR кодів для кожного столика
-- 🎨 **Drag & Drop редагування** - легке перестановка товарів меню перетягуванням
-- 📱 **Real-time синхронізація** - зміни миттєво відображаються на всіх пристроях клієнтів
-- 🖼️ **Завантаження фото** - додавайте привабливі зображення до ваших страв
-- 📊 **Адміністративна панель** - повний контроль над меню, категоріями та локаціями
-- 🔄 **Cross-device оновлення** - зміни на комп'ютері відображаються на телефонах клієнтів
-- 🏢 **Мультилокаційність** - керування меню для кількох локацій
+**Production**: [https://foodlist.pro](https://foodlist.pro)
 
-## 🚀 Технології
+## 🚀 Features
+
+- **Digital Menu Management**: Create and manage restaurant menus with categories and items
+- **QR Code Integration**: Generate QR codes for tables that link directly to menus
+- **Real-time Updates**: Menu changes sync instantly across all devices
+- **Product Variants**: Support for different sizes, options, and pricing
+- **Drag & Drop Ordering**: Intuitive menu item reordering
+- **Multi-language Support**: Currently supports English interface
+- **Responsive Design**: Works perfectly on mobile, tablet, and desktop
+- **Admin Dashboard**: Complete management interface for restaurant owners
+- **Food List Cart**: Modern shopping cart experience (no checkout/payment)
+
+## 🛠️ Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Vite
-- **UI**: Tailwind CSS + shadcn/ui компоненти
-- **Backend**: Supabase (PostgreSQL + Real-time)
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
 - **Deployment**: Vercel
-- **Icons**: Lucide React
-- **Drag & Drop**: @dnd-kit
-- **Forms**: React Hook Form + Zod
+- **Domain**: foodlist.pro
 
-## 📱 Як використовувати
+## 📱 Usage
 
-1. **Адміністратор** входить в систему та керує меню
-2. **QR код** генерується для кожного столика
-3. **Клієнти** сканують QR код та бачать актуальне меню
-4. **Real-time оновлення** забезпечують синхронізацію між пристроями
+### For Restaurant Owners:
+1. Visit [https://foodlist.pro/login](https://foodlist.pro/login)
+2. Create an account or sign in
+3. Add your restaurant locations and tables
+4. Create menu categories and items
+5. Generate QR codes for your tables
 
-## 🛠️ Розробка
+### For Customers:
+1. Scan the QR code at your table
+2. Browse the digital menu
+3. Add items to your food list
+4. View your selections and total
 
+## 🏗️ Local Development
+
+1. Clone the repository:
 ```bash
-# Клонування репозиторію
 git clone https://github.com/kritsakart/qrMenu_v1.git
+cd qrMenu_v1
+```
 
-# Встановлення залежностей
+2. Install dependencies:
+```bash
 npm install
+```
 
-# Запуск локального сервера
+3. Set up environment variables:
+```bash
+# Create .env.local file
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_URL=http://localhost:3000
+```
+
+4. Start development server:
+```bash
 npm run dev
 ```
 
-## 📄 Ліцензія
+## 🗄️ Database Schema
 
-MIT License - дивіться файл LICENSE для деталей.
+The application uses Supabase with the following main tables:
+- `cafe_owners` - Restaurant owner accounts
+- `locations` - Restaurant locations
+- `tables` - Individual tables per location
+- `menu_categories` - Menu categories
+- `menu_items` - Menu items with variants support
+
+## 🚀 Deployment
+
+The application is automatically deployed to Vercel when changes are pushed to the main branch.
+
+**Production URL**: https://foodlist.pro
+
+## 📋 Environment Variables
+
+Required environment variables for production:
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `VITE_APP_URL` - Your production domain (https://foodlist.pro)
+
+## 🔧 Configuration
+
+### Supabase Setup:
+1. Create a new Supabase project
+2. Run the database migrations from `/supabase/migrations/`
+3. Configure authentication URLs in Supabase Dashboard
+4. Enable real-time subscriptions for `menu_items` table
+
+### Domain Configuration:
+- Primary domain: `foodlist.pro`
+- WWW redirect: `www.foodlist.pro` → `foodlist.pro`
+- SSL/TLS: Automatic via Vercel
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📞 Support
+
+For support or questions, please contact [your-email@domain.com]
 
 ---
 
-Створено з ❤️ для індустрії гостинності
+Built with ❤️ for the restaurant industry
