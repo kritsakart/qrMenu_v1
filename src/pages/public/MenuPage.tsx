@@ -370,12 +370,6 @@ const MenuPage = () => {
                   ) : (
                     <div className="text-gray-400 text-6xl">🍽️</div>
                   )}
-                  <button 
-                    onClick={() => setIsMenuItemDialogOpen(false)}
-                    className="absolute top-4 right-4 w-8 h-8 bg-white bg-opacity-80 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
-                  >
-                    ✕
-                  </button>
                 </div>
                 
                 {/* Content section - scrollable */}
