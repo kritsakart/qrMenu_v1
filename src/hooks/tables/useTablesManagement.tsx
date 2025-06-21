@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Table, Location } from "@/types/models";
 import { supabaseAdmin } from "@/integrations/supabase/admin-client";
+import { nanoid } from "nanoid";
 
 export const useTablesManagement = (locationId: string) => {
   const [tables, setTables] = useState<Table[]>([]);
@@ -99,9 +100,9 @@ export const useTablesManagement = (locationId: string) => {
     if (!locationId) return;
     
     try {
-      // Generate a unique table ID for the QR code URL
-      const tableTimestamp = new Date().getTime();
-      const qrCodeUrl = `/menu/${locationId}/${tableTimestamp}`;
+      // Generate a unique table ID first
+      const tempId = nanoid();
+      const qrCodeUrl = `/menu/${locationId}/${tempId}`;
       
       console.log("🔧 Creating table with URL:", qrCodeUrl);
       console.log("🔧 Location ID:", locationId);
@@ -110,9 +111,10 @@ export const useTablesManagement = (locationId: string) => {
       const { data, error } = await supabaseAdmin
         .from('tables')
         .insert({
+          id: tempId,
           location_id: locationId,
           name: tableName,
-          qr_code: `table-${tableTimestamp}`,
+          qr_code: `table-${tempId}`,
           qr_code_url: qrCodeUrl
         })
         .select()

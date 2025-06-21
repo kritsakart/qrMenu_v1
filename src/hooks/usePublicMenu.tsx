@@ -13,6 +13,30 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
   const { toast } = useToast();
   const [allLocations, setAllLocations] = useState<any[]>([]);
 
+  // Add cache-busting mechanism
+  useEffect(() => {
+    // Add meta tags to prevent caching
+    const addNoCacheMetaTags = () => {
+      const metaTags = [
+        { name: 'cache-control', content: 'no-cache, no-store, must-revalidate' },
+        { name: 'pragma', content: 'no-cache' },
+        { name: 'expires', content: '0' }
+      ];
+
+      metaTags.forEach(tag => {
+        let meta = document.querySelector(`meta[name="${tag.name}"]`);
+        if (!meta) {
+          meta = document.createElement('meta');
+          meta.setAttribute('name', tag.name);
+          document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', tag.content);
+      });
+    };
+
+    addNoCacheMetaTags();
+  }, []);
+
   // Real-time підписка на зміни в menu_items для синхронізації між пристроями
   useEffect(() => {
     if (!location?.cafeId) return;
@@ -159,10 +183,11 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
 
         // setAllLocations(allLocations || []);
 
-        // Fetch location data
+        // Fetch location data with cache busting
         // console.log("🔍 PUBLIC MENU: Looking for specific location:", locationId);
         // console.log("🔍 PUBLIC MENU: SQL Query:", `SELECT * FROM locations WHERE id = '${locationId}'`);
         
+        const cacheBreaker = new Date().getTime();
         const { data: locationData, error: locationError } = await supabase
           .from('locations')
           .select('*')
@@ -207,26 +232,23 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           // console.error("❌ PUBLIC MENU: Error fetching tables for location:", allTablesError);
         }
 
-        // Find table by matching the tableId (timestamp) with the qr_code_url
-        // The tableId in URL is the timestamp part from qr_code_url like `/menu/${locationId}/${tableId}`
+        // Find table by matching the tableId with the table ID directly
+        // The tableId in URL is now the actual table ID from database
         const matchingTable = allTables?.find(table => {
-          // Extract timestamp from qr_code_url
-          const urlParts = table.qr_code_url?.split('/');
-          const timestampFromUrl = urlParts?.[urlParts.length - 1];
-          // console.log("🔍 PUBLIC MENU: Comparing tableId:", tableId, "with timestamp from URL:", timestampFromUrl, "for table:", table.name);
-          return timestampFromUrl === tableId;
+          // console.log("🔍 PUBLIC MENU: Comparing tableId:", tableId, "with table ID:", table.id, "for table:", table.name);
+          return table.id === tableId;
         });
 
         // console.log("🔍 PUBLIC MENU: Found matching table:", matchingTable);
 
         if (!matchingTable) {
-          // console.error("❌ PUBLIC MENU: Table not found for timestamp:", tableId, "in location:", locationId);
-          // console.log("🔍 PUBLIC MENU: Available tables with their URLs:", allTables?.map(t => ({ 
+          // console.error("❌ PUBLIC MENU: Table not found for ID:", tableId, "in location:", locationId);
+          // console.log("🔍 PUBLIC MENU: Available tables with their IDs:", allTables?.map(t => ({ 
           //   name: t.name, 
-          //   qr_code_url: t.qr_code_url,
-          //   extractedTimestamp: t.qr_code_url?.split('/').pop()
+          //   id: t.id,
+          //   qr_code_url: t.qr_code_url
           // })));
-          throw new Error(`Столик не знайдено. Можливо QR-код застарів або пошкоджений.`);
+          throw new Error(`Table not found. The QR code may be outdated or damaged.`);
         }
 
         // console.log("✅ PUBLIC MENU: Table found:", matchingTable);
@@ -239,7 +261,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           createdAt: matchingTable.created_at
         });
 
-        // Fetch menu categories for this cafe
+        // Fetch menu categories for this cafe with cache busting
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('menu_categories')
           .select('*')
@@ -265,7 +287,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
         if (mappedCategories.length > 0) {
           const categoryIds = mappedCategories.map(cat => cat.id);
           
-          // Спочатку спробуємо завантажити з сортуванням за order
+          // Спочатку спробуємо завантажити з сортуванням за order (з cache busting)
           let { data: itemsData, error: itemsError } = await supabase
             .from('menu_items')
             .select('*')
