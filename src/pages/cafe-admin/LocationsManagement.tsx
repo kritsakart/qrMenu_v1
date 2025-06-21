@@ -318,41 +318,51 @@ const LocationsManagement = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {locations.map((location) => (
-                <Card key={location.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-lg">{location.name}</h3>
-                      <p className="text-muted-foreground">{location.address}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Created: {new Date(location.createdAt).toLocaleDateString()}
-                      </p>
+              {locations.map((location) => {
+                const tableCount = tables.find(t => t.locationId === location.id)?.count || 0;
+                return (
+                  <Card key={location.id} className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-lg">{location.name}</h3>
+                        <p className="text-muted-foreground">{location.address}</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Tables: {tableCount} | Created: {new Date(location.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => viewTables(location.id)}
+                        >
+                          Tables
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingLocation(location);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setDeletingLocation(location);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingLocation(location);
-                          setIsEditDialogOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          setEditingLocation(location);
-                          setIsDeleteDialogOpen(true);
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -411,13 +421,13 @@ const LocationsManagement = () => {
               Are you sure you want to delete this location? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          {editingLocation && (
+          {deletingLocation && (
             <div className="py-4">
               <p>
-                <strong>Location:</strong> {editingLocation.name}
+                <strong>Location:</strong> {deletingLocation.name}
               </p>
               <p>
-                <strong>Address:</strong> {editingLocation.address}
+                <strong>Address:</strong> {deletingLocation.address}
               </p>
             </div>
           )}
