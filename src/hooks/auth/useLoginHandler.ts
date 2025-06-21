@@ -27,8 +27,8 @@ export const useLoginHandler = (setUser: (user: AppUser | null) => void, setIsLo
         if (adminUser) {
           setUser(adminUser);
           toast({
-            title: "Успішний вхід",
-            description: `Вітаємо, ${adminUser.username}!`,
+            title: "Login Successful",
+            description: `Welcome, ${adminUser.username}!`,
           });
           return Promise.resolve();
         }
@@ -49,13 +49,13 @@ export const useLoginHandler = (setUser: (user: AppUser | null) => void, setIsLo
           
           setUser(cafeOwnerData);
           toast({
-            title: "Успішний вхід",
-            description: `Вітаємо, ${cafeOwnerData.username}!`,
+            title: "Login Successful",
+            description: `Welcome, ${cafeOwnerData.username}!`,
           });
           return Promise.resolve();
         } catch (fetchError) {
           console.error("Error fetching cafe owner data:", fetchError);
-          throw new Error(`Помилка отримання даних користувача: ${fetchError instanceof Error ? fetchError.message : 'Невідома помилка'}`);
+          throw new Error(`Database user data fetch error: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
         }
       } 
       
@@ -64,13 +64,13 @@ export const useLoginHandler = (setUser: (user: AppUser | null) => void, setIsLo
       if (mockUser) {
         setUser(mockUser);
         toast({
-          title: "Успішний вхід у тестовому режимі",
-          description: `Вітаємо, ${mockUser.username}! (використано тестові дані)`,
+          title: "Test Mode Login Successful",
+          description: `Welcome, ${mockUser.username}! (using test data)`,
         });
         return Promise.resolve();
       }
       
-      throw new Error(`Користувача '${username}' не знайдено`);
+      throw new Error(`User '${username}' not found`);
     } catch (error) {
       let message = "Login error";
       if (error instanceof Error) {
@@ -81,7 +81,7 @@ export const useLoginHandler = (setUser: (user: AppUser | null) => void, setIsLo
 
       toast({
         variant: "destructive",
-        title: "Помилка автентифікації",
+        title: "Authentication Error",
         description: message,
       });
 

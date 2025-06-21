@@ -1,4 +1,3 @@
-
 interface LoginAttemptInfo {
   enteredUsername: string;
   enteredPassword?: string;
@@ -15,34 +14,34 @@ const LoginDebugInfo = ({ loginAttempt }: LoginDebugInfoProps) => {
 
   return (
     <div className="mt-4 p-3 border rounded bg-gray-50">
-      <h3 className="font-semibold mb-2">Інформація про спробу входу:</h3>
-      <p><strong>Введений логін:</strong> {loginAttempt.enteredUsername}</p>
-      {loginAttempt.enteredPassword && <p><strong>Введений пароль:</strong> {loginAttempt.enteredPassword}</p>}
+      <h3 className="font-semibold mb-2">Login attempt information:</h3>
+      <p><strong>Entered username:</strong> {loginAttempt.enteredUsername}</p>
+      {loginAttempt.enteredPassword && <p><strong>Entered password:</strong> {loginAttempt.enteredPassword}</p>}
       
       <p className="mt-2 text-sm text-blue-600">
-        Запит до бази даних виконано...
+        Database query executed...
       </p>
       
       {loginAttempt.comparisonResults && loginAttempt.comparisonResults.databaseQueryInfo && (
         <div className="mt-2">
-          <p><strong>Виконаний SQL запит:</strong></p>
+          <p><strong>Executed SQL query:</strong></p>
           <pre className="text-xs bg-blue-50 p-2 mt-1 overflow-auto rounded">
-            {loginAttempt.comparisonResults.databaseQueryInfo.query || "Запит не виконано"}
+            {loginAttempt.comparisonResults.databaseQueryInfo.query || "Query not executed"}
           </pre>
           
-          <p className="mt-2"><strong>Тип клієнта:</strong></p>
+          <p className="mt-2"><strong>Client type:</strong></p>
           <pre className="text-xs bg-green-50 p-2 mt-1 overflow-auto rounded">
-            {loginAttempt.comparisonResults.databaseQueryInfo.clientType || "Не вказано"}
+            {loginAttempt.comparisonResults.databaseQueryInfo.clientType || "Not specified"}
           </pre>
           
-          <p className="mt-2"><strong>Дата і час виконання запиту:</strong></p>
+          <p className="mt-2"><strong>Query execution date and time:</strong></p>
           <pre className="text-xs p-2 mt-1 overflow-auto rounded">
-            {loginAttempt.comparisonResults.databaseQueryInfo.timestamp || "Невідомо"}
+            {loginAttempt.comparisonResults.databaseQueryInfo.timestamp || "Unknown"}
           </pre>
           
           {loginAttempt.comparisonResults.databaseQueryInfo.error && (
             <div className="mt-2">
-              <p className="font-semibold text-red-700"><strong>Помилка запиту:</strong></p>
+              <p className="font-semibold text-red-700"><strong>Query error:</strong></p>
               <pre className="text-xs bg-red-50 p-2 mt-1 overflow-auto rounded text-red-700">
                 {loginAttempt.comparisonResults.databaseQueryInfo.error}
               </pre>
@@ -54,38 +53,40 @@ const LoginDebugInfo = ({ loginAttempt }: LoginDebugInfoProps) => {
       {loginAttempt.comparisonResults && loginAttempt.comparisonResults.allCafeOwners && (
         <div className="mt-2">
           <p className="font-semibold text-green-700">
-            <strong>Всі власники кафе в базі даних ({loginAttempt.comparisonResults.allCafeOwners.length}):</strong>
+            <strong>All cafe owners in database ({loginAttempt.comparisonResults.allCafeOwners.length}):</strong>
           </p>
           {loginAttempt.comparisonResults.allCafeOwners.length === 0 ? (
-            <p className="text-red-500 mt-2">Власників кафе не знайдено в базі даних</p>
+            <p className="text-red-500 mt-2">No cafe owners found in database</p>
           ) : (
             <div className="max-h-[400px] overflow-auto mt-2 border rounded">
               <table className="min-w-full bg-white text-sm">
                 <thead className="bg-gray-100 sticky top-0">
                   <tr>
                     <th className="py-2 px-4 border-b text-left">ID</th>
-                    <th className="py-2 px-4 border-b text-left">Ім'я</th>
-                    <th className="py-2 px-4 border-b text-left">Логін</th>
+                    <th className="py-2 px-4 border-b text-left">Name</th>
+                    <th className="py-2 px-4 border-b text-left">Username</th>
                     <th className="py-2 px-4 border-b text-left">Email</th>
-                    <th className="py-2 px-4 border-b text-left">Статус</th>
-                    <th className="py-2 px-4 border-b text-left">Створено</th>
+                    <th className="py-2 px-4 border-b text-left">Status</th>
+                    <th className="py-2 px-4 border-b text-left">Created</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {loginAttempt.comparisonResults.allCafeOwners.map((owner: any, index: number) => (
-                    <tr key={owner.id} className={index % 2 === 0 ? "bg-gray-50" : ""}>
-                      <td className="py-2 px-4 border-b">{owner.id}</td>
-                      <td className="py-2 px-4 border-b">{owner.name}</td>
-                      <td className="py-2 px-4 border-b">{owner.username}</td>
-                      <td className="py-2 px-4 border-b">{owner.email}</td>
-                      <td className="py-2 px-4 border-b">
+                  {loginAttempt.comparisonResults.allCafeOwners.map((owner, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-2 px-4">{owner.id}</td>
+                      <td className="py-2 px-4">{owner.name}</td>
+                      <td className="py-2 px-4 font-mono">{owner.username}</td>
+                      <td className="py-2 px-4">{owner.email}</td>
+                      <td className="py-2 px-4">
                         <span className={`px-2 py-1 rounded text-xs ${
-                          owner.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          owner.status === 'active' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}>
                           {owner.status}
                         </span>
                       </td>
-                      <td className="py-2 px-4 border-b">{new Date(owner.createdAt).toLocaleString()}</td>
+                      <td className="py-2 px-4 text-xs">{new Date(owner.createdAt).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -97,7 +98,7 @@ const LoginDebugInfo = ({ loginAttempt }: LoginDebugInfoProps) => {
       
       {loginAttempt.comparisonResults && loginAttempt.comparisonResults.mockDataCheck && (
         <div className="mt-4 pt-2 border-t">
-          <p><strong>Перевірка в тестових даних:</strong></p>
+          <p><strong>Mock data check:</strong></p>
           <pre className="text-xs bg-yellow-50 p-2 mt-1 overflow-auto max-h-[200px] rounded">
             {JSON.stringify(loginAttempt.comparisonResults.mockDataCheck, null, 2)}
           </pre>
@@ -106,7 +107,7 @@ const LoginDebugInfo = ({ loginAttempt }: LoginDebugInfoProps) => {
       
       {loginAttempt.comparisonResults && loginAttempt.comparisonResults.userExistsCheck && (
         <div className="mt-2">
-          <p><strong>Результати пошуку в базі даних:</strong></p>
+          <p><strong>Database search results:</strong></p>
           <pre className="text-xs bg-gray-100 p-2 mt-1 overflow-auto max-h-[200px] rounded">
             {JSON.stringify(loginAttempt.comparisonResults.userExistsCheck.result || {}, null, 2)}
           </pre>

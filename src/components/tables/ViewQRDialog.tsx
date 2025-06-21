@@ -56,9 +56,9 @@ export const ViewQRDialog = ({
                 window.open(`${window.location.origin}${selectedTable.qrCodeUrl}`, '_blank');
               }
             }}>
-              Відкрити меню
+              Open Menu
             </Button>
-            <Button variant="outline">Завантажити QR-код</Button>
+            <Button variant="outline">Download QR Code</Button>
           </div>
         </div>
       </DialogContent>

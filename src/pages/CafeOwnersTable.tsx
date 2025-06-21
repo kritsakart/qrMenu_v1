@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { fetchCafeOwners } from "@/utils/fetchCafeOwners";
 import { CafeOwner } from "@/types/models";
@@ -24,11 +23,11 @@ const CafeOwnersTable = () => {
       const data = await fetchCafeOwners();
       setOwners(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Невідома помилка';
+      const message = err instanceof Error ? err.message : 'Unknown error';
       setError(message);
       toast({
         variant: "destructive",
-        title: "Помилка завантаження",
+        title: "Loading error",
         description: message
       });
     } finally {
@@ -45,8 +44,8 @@ const CafeOwnersTable = () => {
       await navigator.clipboard.writeText(text);
       setCopiedIds(prev => ({...prev, [ownerId]: type}));
       toast({
-        title: "Скопійовано",
-        description: `${type === 'username' ? 'Логін' : 'Пароль'} "${text}" скопійовано в буфер обміну`,
+        title: "Copied",
+        description: `${type === 'username' ? 'Username' : 'Password'} "${text}" copied to clipboard`,
       });
       
       // Reset copied status after 2 seconds
@@ -60,11 +59,11 @@ const CafeOwnersTable = () => {
         });
       }, 2000);
     } catch (err) {
-      console.error('Не вдалося скопіювати текст:', err);
+      console.error('Failed to copy text:', err);
       toast({
         variant: "destructive",
-        title: "Помилка копіювання",
-        description: "Не вдалося скопіювати текст в буфер обміну"
+        title: "Copy error",
+        description: "Failed to copy text to clipboard"
       });
     }
   };
@@ -81,23 +80,23 @@ const CafeOwnersTable = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Список власників кафе</h1>
+        <h1 className="text-3xl font-bold">Cafe Owners List</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadOwners} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Оновити
+            Refresh
           </Button>
           <Button variant="secondary" onClick={handleBackClick}>
-            На головну
+            Back to Home
           </Button>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Власники кафе в базі даних</CardTitle>
+          <CardTitle>Cafe Owners in Database</CardTitle>
           <CardDescription>
-            Повний список всіх власників кафе, зареєстрованих в системі
+            Full list of all cafe owners registered in the system
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,23 +106,23 @@ const CafeOwnersTable = () => {
             </div>
           ) : error ? (
             <div className="text-center py-10 text-red-500">
-              <p>Помилка: {error}</p>
+              <p>Error: {error}</p>
             </div>
           ) : owners.length === 0 ? (
             <div className="text-center py-10">
-              <p>Немає зареєстрованих власників кафе в базі даних</p>
+              <p>No registered cafe owners in database</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Назва</TableHead>
-                    <TableHead>Логін</TableHead>
-                    <TableHead>Пароль</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Password</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Створено</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -138,7 +137,7 @@ const CafeOwnersTable = () => {
                             size="sm"
                             className="h-6 w-6 p-0"
                             onClick={() => copyToClipboard(owner.username, owner.id, 'username')}
-                            title="Копіювати логін"
+                            title="Copy username"
                           >
                             {copiedIds[owner.id] === 'username' ? 
                               <Check size={14} className="text-green-500" /> : 
@@ -155,7 +154,7 @@ const CafeOwnersTable = () => {
                             size="sm"
                             className="h-6 w-6 p-0"
                             onClick={() => copyToClipboard(owner.password, owner.id, 'password')}
-                            title="Копіювати пароль"
+                            title="Copy password"
                           >
                             {copiedIds[owner.id] === 'password' ? 
                               <Check size={14} className="text-green-500" /> : 
@@ -173,7 +172,7 @@ const CafeOwnersTable = () => {
                               : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {owner.status === "active" ? "активний" : "неактивний"}
+                          {owner.status === "active" ? "active" : "inactive"}
                         </span>
                       </TableCell>
                       <TableCell>{formatDate(owner.createdAt)}</TableCell>

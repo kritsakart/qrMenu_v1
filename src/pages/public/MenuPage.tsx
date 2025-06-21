@@ -66,12 +66,10 @@ const MenuPage = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [isCartDialogOpen, setIsCartDialogOpen] = useState(false);
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [isOrderSuccessDialogOpen, setIsOrderSuccessDialogOpen] = useState(false);
+  const [isFoodListDialogOpen, setIsFoodListDialogOpen] = useState(false);
+  const [isMenuItemDialogOpen, setIsMenuItemDialogOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
-  const [isMenuItemDialogOpen, setIsMenuItemDialogOpen] = useState(false);
 
   // Set first category as selected when categories load
   useEffect(() => {
@@ -92,7 +90,7 @@ const MenuPage = () => {
     setTotalAmount(total);
   }, [cart]);
 
-  const addToCart = (item: any) => {
+  const addToFoodList = (item: any) => {
     const cartItem: OrderItem = {
       id: `order-item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       menuItemId: item.id,
@@ -105,24 +103,13 @@ const MenuPage = () => {
     setCart([...cart, cartItem]);
     
     toast({
-      title: "Added to Order",
-      description: `${item.name} added to your order.`,
+      title: "Added to Food List",
+      description: `${item.name} added to your food list.`,
     });
   };
 
-  const handleRemoveFromCart = (itemId: string) => {
+  const handleRemoveFromFoodList = (itemId: string) => {
     setCart(cart.filter(item => item.id !== itemId));
-  };
-
-  const handleCheckout = () => {
-    setIsCartDialogOpen(false);
-    setIsPaymentDialogOpen(true);
-  };
-
-  const handlePayment = () => {
-    setIsPaymentDialogOpen(false);
-    setIsOrderSuccessDialogOpen(true);
-    setCart([]);
   };
 
   const openMenuItemDialog = (item: MenuItem) => {
@@ -137,7 +124,7 @@ const MenuPage = () => {
     setIsMenuItemDialogOpen(true);
   };
 
-  const addToCartFromDialog = () => {
+  const addToFoodListFromDialog = () => {
     if (selectedMenuItem) {
       // Calculate final price including variant
       let finalPrice = selectedMenuItem.price;
@@ -164,8 +151,8 @@ const MenuPage = () => {
       setCart([...cart, cartItem]);
       
       toast({
-        title: "Added to Order",
-        description: `${finalName} added to your order.`,
+        title: "Added to Food List",
+        description: `${finalName} added to your food list.`,
       });
       
       setIsMenuItemDialogOpen(false);
@@ -245,9 +232,9 @@ const MenuPage = () => {
               <Button 
                 variant="outline"
                 className="relative"
-                onClick={() => setIsCartDialogOpen(true)}
+                onClick={() => setIsFoodListDialogOpen(true)}
               >
-                Cart {cart.length > 0 && (
+                Food List {cart.length > 0 && (
                   <span className="absolute -top-2 -right-2 bg-primary text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
                     {cart.length}
                   </span>
@@ -354,7 +341,7 @@ const MenuPage = () => {
           )}
         </main>
 
-        {/* Menu Item Detail Dialog */}
+        {/* Menu Item Dialog */}
         <Dialog open={isMenuItemDialogOpen} onOpenChange={setIsMenuItemDialogOpen}>
           <DialogContent className="max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col [&>button]:bg-white [&>button]:bg-opacity-80 [&>button]:rounded-full [&>button]:w-8 [&>button]:h-8 [&>button]:shadow-md [&>button]:hover:bg-opacity-100 [&>button]:transition-all">
             {selectedMenuItem && (
@@ -442,10 +429,10 @@ const MenuPage = () => {
                   </div>
                   
                   <Button 
-                    onClick={addToCartFromDialog}
+                    onClick={addToFoodListFromDialog}
                     className="w-full bg-black hover:bg-gray-800 text-white h-12"
                   >
-                    Add to Cart
+                    Add to Food List
                   </Button>
                 </div>
               </>
@@ -453,11 +440,11 @@ const MenuPage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Cart Dialog */}
-        <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
+        {/* Food List Dialog */}
+        <Dialog open={isFoodListDialogOpen} onOpenChange={setIsFoodListDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Your Order</DialogTitle>
+              <DialogTitle>Your Food List</DialogTitle>
               <DialogDescription>
                 Review your items before checkout
               </DialogDescription>
@@ -465,7 +452,7 @@ const MenuPage = () => {
             <div className="space-y-4 py-4">
               {cart.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">Your cart is empty</p>
+                  <p className="text-muted-foreground">Your food list is empty</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -489,7 +476,7 @@ const MenuPage = () => {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleRemoveFromCart(item.id)}
+                          onClick={() => handleRemoveFromFoodList(item.id)}
                         >
                           Remove
                         </Button>
@@ -504,71 +491,8 @@ const MenuPage = () => {
                 <div className="text-lg font-bold">
                   Total: ${totalAmount.toFixed(2)}
                 </div>
-                <Button onClick={handleCheckout} className="bg-black hover:bg-gray-800 text-white">
-                  Checkout
-                </Button>
               </DialogFooter>
             )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Payment Dialog */}
-        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Payment</DialogTitle>
-              <DialogDescription>
-                Choose your payment method
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="space-y-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12 text-left justify-start"
-                  onClick={handlePayment}
-                >
-                  💳 Card
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12 text-left justify-start"
-                  onClick={handlePayment}
-                >
-                  💵 Cash
-                </Button>
-              </div>
-            </div>
-            <DialogFooter>
-              <div className="text-lg font-bold">
-                Total: ${totalAmount.toFixed(2)}
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Order Success Dialog */}
-        <Dialog open={isOrderSuccessDialogOpen} onOpenChange={setIsOrderSuccessDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>🎉 Order Received!</DialogTitle>
-              <DialogDescription>
-                Your order has been successfully placed. Please wait for preparation.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 text-center">
-              <p className="text-muted-foreground">
-                Estimated preparation time: 15-20 minutes
-              </p>
-            </div>
-            <DialogFooter>
-              <Button 
-                onClick={() => setIsOrderSuccessDialogOpen(false)}
-                className="w-full bg-black hover:bg-gray-800 text-white"
-              >
-                Close
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -8,8 +7,8 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4">Система управління кафе</h1>
-        <p className="text-xl text-gray-600">Оберіть сторінку для переходу</p>
+        <h1 className="text-4xl font-bold mb-4">Cafe Management System</h1>
+        <p className="text-xl text-gray-600">Choose a page to navigate to</p>
       </div>
       
       <div className="flex flex-col gap-4">
@@ -18,7 +17,7 @@ const Index = () => {
           onClick={() => navigate('/login')}
           className="min-w-[250px]"
         >
-          Сторінка входу
+          Login Page
         </Button>
         
         <Button 
@@ -26,7 +25,7 @@ const Index = () => {
           onClick={() => navigate('/cafe-owners-table')}
           className="min-w-[250px]"
         >
-          Таблиця власників кафе
+          Cafe Owners Table
         </Button>
         
         <Button 
@@ -35,7 +34,7 @@ const Index = () => {
           onClick={() => navigate('/super-admin')}
           className="min-w-[250px]"
         >
-          Панель Super Admin
+          Super Admin Panel
         </Button>
         
         <Button 
@@ -44,7 +43,7 @@ const Index = () => {
           onClick={() => navigate('/cafe-admin')}
           className="min-w-[250px]"
         >
-          Панель Cafe Admin
+          Cafe Admin Panel
         </Button>
       </div>
     </div>

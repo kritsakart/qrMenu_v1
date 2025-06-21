@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Dialog, 
@@ -67,14 +66,14 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
       
       if (error) {
         console.error("Insert error:", error);
-        let errorMessage = "Не вдалося додати кафе-власника.";
+        let errorMessage = "Failed to add cafe owner.";
         
         if (error.message.includes("email")) {
-          errorMessage += " Такий email вже існує.";
+          errorMessage += " Such email already exists.";
         } else if (error.message.includes("username")) {
-          errorMessage += " Такий логін вже існує.";
+          errorMessage += " Such username already exists.";
         } else if (error.message.includes("violates row-level security policy")) {
-          errorMessage += " Проблема з доступом до бази даних.";
+          errorMessage += " Database access problem.";
         }
         
         throw new Error(errorMessage);
@@ -91,12 +90,12 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
       });
       
       toast({
-        title: "Кафе-власника додано",
+        title: "Cafe Owner Added",
         description: (
           <div>
-            <p><strong>Логін:</strong> {username}</p>
-            <p><strong>Пароль:</strong> {password}</p>
-            <p className="text-xs mt-2 text-muted-foreground">Не забудьте зберегти ці дані, оскільки пароль більше не буде доступний у чистому вигляді.</p>
+            <p><strong>Username:</strong> {username}</p>
+            <p><strong>Password:</strong> {password}</p>
+            <p className="text-xs mt-2 text-muted-foreground">Please save these credentials as the password will not be available in plain text again.</p>
           </div>
         ),
       });
@@ -107,8 +106,8 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
       console.error("Error adding cafe owner:", error);
       toast({
         variant: "destructive",
-        title: "Помилка",
-        description: error.message || "Не вдалося додати кафе-власника."
+        title: "Error",
+        description: error.message || "Failed to add cafe owner."
       });
     } finally {
       setIsSubmitting(false);
@@ -118,13 +117,13 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Додати власника кафе</Button>
+        <Button>Add Cafe Owner</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Додати нового власника кафе</DialogTitle>
+          <DialogTitle>Add New Cafe Owner</DialogTitle>
           <DialogDescription>
-            Створіть новий акаунт власника кафе. Система згенерує логін та пароль.
+            Create a new cafe owner account. The system will generate username and password.
           </DialogDescription>
         </DialogHeader>
         
@@ -135,10 +134,10 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Назва кафе</FormLabel>
+                  <FormLabel>Cafe Name</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Введіть назву кафе" 
+                      placeholder="Enter cafe name" 
                       {...field} 
                     />
                   </FormControl>
@@ -156,7 +155,7 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
                   <FormControl>
                     <Input 
                       type="email" 
-                      placeholder="Введіть email адресу" 
+                      placeholder="Enter email address" 
                       {...field} 
                     />
                   </FormControl>
@@ -176,24 +175,17 @@ export const AddOwnerDialog = ({ onOwnerAdded }: AddOwnerDialogProps) => {
                       onCheckedChange={field.onChange} 
                     />
                   </FormControl>
-                  <FormLabel>Активний</FormLabel>
+                  <FormLabel>Active</FormLabel>
                 </FormItem>
               )}
             />
             
-            <DialogFooter className="pt-4">
-              <Button variant="outline" type="button" onClick={() => setIsOpen(false)}>
-                Скасувати
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <span className="inline-flex items-center">
-                    <span className="animate-spin mr-2 h-4 w-4 border-b-2 rounded-full border-white"></span>
-                    Додавання...
-                  </span>
-                ) : (
-                  'Додати власника кафе'
-                )}
+                {isSubmitting ? "Adding..." : "Add Owner"}
               </Button>
             </DialogFooter>
           </form>

@@ -39,6 +39,7 @@ const LocationsManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [deletingLocation, setDeletingLocation] = useState<Location | null>(null);
 
   useEffect(() => {
     if (cafeId) {
@@ -155,8 +156,8 @@ const LocationsManagement = () => {
       setNewLocation({ name: "", address: "" });
       
       toast({
-        title: "Локацію додано",
-        description: `${newLocation.name} успішно додано.`,
+        title: "Location added",
+        description: `${newLocation.name} has been successfully added.`,
       });
     } catch (error) {
       console.error("Помилка при додаванні локації:", error);
@@ -192,8 +193,8 @@ const LocationsManagement = () => {
       setEditingLocation(null);
       
       toast({
-        title: "Локацію оновлено",
-        description: `${editingLocation.name} успішно оновлено.`,
+        title: "Location updated",
+        description: `${editingLocation.name} has been successfully updated.`,
       });
     } catch (error) {
       console.error("Помилка при оновленні локації:", error);
@@ -206,23 +207,23 @@ const LocationsManagement = () => {
   };
 
   const handleDeleteLocation = async () => {
-    if (!editingLocation) return;
+    if (!deletingLocation) return;
     
     try {
       const { error } = await supabaseAdmin
         .from('locations')
         .delete()
-        .eq('id', editingLocation.id);
+        .eq('id', deletingLocation.id);
         
       if (error) throw error;
       
-      setLocations(locations.filter((location) => location.id !== editingLocation.id));
+      setLocations(locations.filter((location) => location.id !== deletingLocation.id));
       setIsDeleteDialogOpen(false);
-      setEditingLocation(null);
+      setDeletingLocation(null);
       
       toast({
-        title: "Локацію видалено",
-        description: `${editingLocation.name} успішно видалено.`,
+        title: "Location deleted",
+        description: `${deletingLocation.name} has been successfully deleted.`,
       });
     } catch (error) {
       console.error("Помилка при видаленні локації:", error);
@@ -240,7 +241,7 @@ const LocationsManagement = () => {
   };
 
   const openDeleteDialog = (location: Location) => {
-    setEditingLocation(location);
+    setDeletingLocation(location);
     setIsDeleteDialogOpen(true);
   };
 
@@ -249,51 +250,51 @@ const LocationsManagement = () => {
   };
 
   return (
-    <DashboardLayout title="Управління локаціями">
+    <DashboardLayout title="Locations Management">
       <div className="mb-6 flex justify-between items-center">
         <p className="text-muted-foreground">
-          Управляйте локаціями вашого кафе та їх деталями.
+          Manage your cafe locations and their details.
         </p>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Додати локацію</Button>
+            <Button>Add Location</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Додати нову локацію</DialogTitle>
+              <DialogTitle>Add New Location</DialogTitle>
               <DialogDescription>
-                Створіть нову локацію для вашого кафе.
+                Create a new location for your cafe.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Назва локації</Label>
+                <Label htmlFor="name">Location Name</Label>
                 <Input
                   id="name"
                   value={newLocation.name}
                   onChange={(e) =>
                     setNewLocation({ ...newLocation, name: e.target.value })
                   }
-                  placeholder="Введіть назву локації"
+                  placeholder="Enter location name"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Адреса</Label>
+                <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
                   value={newLocation.address}
                   onChange={(e) =>
                     setNewLocation({ ...newLocation, address: e.target.value })
                   }
-                  placeholder="Введіть адресу локації"
+                  placeholder="Enter location address"
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Скасувати
+                Cancel
               </Button>
-              <Button onClick={handleAddLocation}>Додати локацію</Button>
+              <Button onClick={handleAddLocation}>Add Location</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -301,166 +302,131 @@ const LocationsManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Локації кафе</CardTitle>
+          <CardTitle>Cafe Locations</CardTitle>
           <CardDescription>
-            Список всіх локацій вашого кафе.
+            List of all your cafe locations.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
-              <p>Завантаження локацій...</p>
+              <p>Loading locations...</p>
             </div>
           ) : locations.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Немає локацій. Додайте першу локацію, щоб почати.</p>
+              <p className="text-muted-foreground">No locations found. Add the first location to get started.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Назва
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Адреса
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Столики
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Створено
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Дії
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {locations.map((location) => {
-                    const tableCount = tables.find(t => t.locationId === location.id)?.count || 0;
-                    
-                    return (
-                      <tr key={location.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {location.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {location.address}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {tableCount} столиків
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(location.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => viewTables(location.id)}
-                          >
-                            Столики
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(location)}
-                          >
-                            Редагувати
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => openDeleteDialog(location)}
-                          >
-                            Видалити
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="space-y-4">
+              {locations.map((location) => (
+                <Card key={location.id} className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{location.name}</h3>
+                      <p className="text-muted-foreground">{location.address}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Created: {new Date(location.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingLocation(location);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setEditingLocation(location);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Edit Location Dialog */}
+      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Редагувати локацію</DialogTitle>
+            <DialogTitle>Edit Location</DialogTitle>
             <DialogDescription>
-              Оновіть деталі цієї локації.
+              Update the details for this location.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Назва локації</Label>
-              <Input
-                id="edit-name"
-                value={editingLocation?.name || ""}
-                onChange={(e) =>
-                  setEditingLocation(
-                    editingLocation
-                      ? { ...editingLocation, name: e.target.value }
-                      : null
-                  )
-                }
-                placeholder="Введіть назву локації"
-              />
+          {editingLocation && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Location Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingLocation.name}
+                  onChange={(e) =>
+                    setEditingLocation({ ...editingLocation, name: e.target.value })
+                  }
+                  placeholder="Enter location name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={editingLocation.address}
+                  onChange={(e) =>
+                    setEditingLocation({ ...editingLocation, address: e.target.value })
+                  }
+                  placeholder="Enter location address"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-address">Адреса</Label>
-              <Input
-                id="edit-address"
-                value={editingLocation?.address || ""}
-                onChange={(e) =>
-                  setEditingLocation(
-                    editingLocation
-                      ? { ...editingLocation, address: e.target.value }
-                      : null
-                  )
-                }
-                placeholder="Введіть адресу локації"
-              />
-            </div>
-          </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Скасувати
+              Cancel
             </Button>
-            <Button onClick={handleEditLocation}>Оновити локацію</Button>
+            <Button onClick={handleEditLocation}>Update Location</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Location Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Видалити локацію</DialogTitle>
+            <DialogTitle>Delete Location</DialogTitle>
             <DialogDescription>
-              Ви впевнені, що хочете видалити цю локацію? Це дія незворотна.
+              Are you sure you want to delete this location? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p>
-              <strong>Локація:</strong> {editingLocation?.name}
-            </p>
-            <p>
-              <strong>Адреса:</strong> {editingLocation?.address}
-            </p>
-          </div>
+          {editingLocation && (
+            <div className="py-4">
+              <p>
+                <strong>Location:</strong> {editingLocation.name}
+              </p>
+              <p>
+                <strong>Address:</strong> {editingLocation.address}
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Скасувати
+              Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteLocation}>
-              Видалити локацію
+              Delete Location
             </Button>
           </DialogFooter>
         </DialogContent>

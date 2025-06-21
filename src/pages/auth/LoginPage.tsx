@@ -50,22 +50,22 @@ const LoginPage = () => {
 
   const loadCafeOwners = async () => {
     try {
-      console.log("Отримання інформації про адміністративне підключення...");
+      console.log("Getting administrative connection information...");
       
       // Note: We avoid direct access to protected properties here
-      console.log("Спроба підключення до бази даних...");
+      console.log("Attempting database connection...");
       
-      // Спроба отримати дані для перевірки підключення
+      // Attempt to get data for connection verification
       const connectionData = {
         timestamp: new Date().toISOString(),
         query: "SELECT * FROM cafe_owners",
         clientType: "supabaseAdmin"
       };
       
-      // Отримання всіх власників кафе
+      // Get all cafe owners
       const cafeOwners = await fetchCafeOwners();
       
-      // Збереження результатів для відображення
+      // Save results for display
       setLoginAttempt(prev => ({
         ...prev,
         comparisonResults: {
@@ -82,8 +82,8 @@ const LoginPage = () => {
       }));
       
     } catch (error) {
-      console.error("Помилка завантаження власників кафе:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Невідома помилка';
+      console.error("Error loading cafe owners:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       setLoginAttempt(prev => ({
         ...prev,
@@ -97,7 +97,7 @@ const LoginPage = () => {
         isVisible: true
       }));
       
-      setLoginError(`Помилка підключення до бази даних: ${errorMessage}`);
+      setLoginError(`Database connection error: ${errorMessage}`);
     }
   };
 
@@ -122,22 +122,22 @@ const LoginPage = () => {
       if (loginType === "cafe") {
         // Вхід для власника кафе - потрібно тільки ім'я користувача
         if (!username) {
-          setLoginError("Будь ласка, введіть код локації");
+          setLoginError("Please enter the location code");
           return;
         }
         
         // Передаємо введене значення без змін
         await login(username);
-        console.log("Логін успішний");
+        console.log("Login successful");
       } else {
         // Вхід для адміністратора - потрібні ім'я користувача та пароль
         if (!username || !password) {
-          setLoginError("Будь ласка, введіть ім'я користувача та пароль");
+          setLoginError("Please enter the username and password");
           return;
         }
         
         await login(username, password);
-        console.log("Логін адміністратора успішний");
+        console.log("Admin login successful");
       }
       
     } catch (error) {
@@ -147,8 +147,8 @@ const LoginPage = () => {
         setLoginError(error.message);
       } else {
         setLoginError(loginType === "cafe" 
-          ? "Помилка при вході. Перевірте код локації та спробуйте знову." 
-          : "Помилка при вході. Перевірте облікові дані адміністратора та спробуйте знову.");
+          ? "Login error. Please check the location code and try again." 
+          : "Login error. Please check the admin credentials and try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -157,7 +157,7 @@ const LoginPage = () => {
 
   const handleLoginTypeChange = (val: string) => {
     setLoginType(val as "cafe" | "admin");
-    setLoginError(""); // Очищаємо помилки при зміні типу входу
+    setLoginError(""); // Clear errors when changing login type
     setUsername("");
     setPassword("");
   };
@@ -165,11 +165,11 @@ const LoginPage = () => {
   const handleTestDatabaseConnection = async () => {
     setIsSubmitting(true);
     try {
-      // Перевірка підключення та отримання діагностичної інформації
+      // Check connection and get diagnostic information
       await loadCafeOwners();
     } catch (error) {
-      console.error("Помилка перевірки підключення:", error);
-      setLoginError(`Помилка підключення до бази даних: ${error instanceof Error ? error.message : 'Невідома помилка'}`);
+      console.error("Connection check error:", error);
+      setLoginError(`Database connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -181,7 +181,7 @@ const LoginPage = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Digital Menu Builder</CardTitle>
           <CardDescription>
-            Оберіть тип входу та введіть облікові дані
+            Choose login type and enter your credentials
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,8 +194,8 @@ const LoginPage = () => {
 
           <Tabs defaultValue="cafe" onValueChange={handleLoginTypeChange} className="mb-4">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="cafe">Локація кафе</TabsTrigger>
-              <TabsTrigger value="admin">Адміністратор</TabsTrigger>
+              <TabsTrigger value="cafe">Cafe Location</TabsTrigger>
+              <TabsTrigger value="admin">Administrator</TabsTrigger>
             </TabsList>
 
             <TabsContent value="cafe" className="mt-4">
@@ -227,7 +227,7 @@ const LoginPage = () => {
               className="w-full px-4 py-2 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded border border-blue-200 transition-colors"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Перевірка підключення..." : "Перевірити підключення до бази даних"}
+              {isSubmitting ? "Checking connection..." : "Test Database Connection"}
             </button>
           </div>
           

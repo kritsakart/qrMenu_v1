@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -35,7 +34,7 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
       setRowError(null);
       await onStatusChange(owner.id, owner.status);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Невідома помилка';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setRowError(errorMessage);
       console.error(`Error updating status for owner ${owner.id}:`, error);
     } finally {
@@ -49,7 +48,7 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
       setRowError(null);
       await onDeleteOwner(owner.id);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Невідома помилка';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setRowError(errorMessage);
       console.error(`Error deleting owner ${owner.id}:`, error);
       setShowDeleteDialog(false);
@@ -63,20 +62,20 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
       await navigator.clipboard.writeText(text);
       setIsCopied(true);
       toast({
-        title: "Скопійовано",
-        description: `Логін "${text}" скопійовано в буфер обміну`,
+        title: "Copied",
+        description: `Username "${text}" copied to clipboard`,
       });
       
-      // Скидаємо стан isCopied через 2 секунди
+      // Reset copied state after 2 seconds
       setTimeout(() => {
         setIsCopied(false);
       }, 2000);
     } catch (err) {
-      console.error('Не вдалося скопіювати текст:', err);
+      console.error('Failed to copy text:', err);
       toast({
         variant: "destructive",
-        title: "Помилка копіювання",
-        description: "Не вдалося скопіювати текст в буфер обміну"
+        title: "Copy error",
+        description: "Failed to copy text to clipboard"
       });
     }
   };
@@ -95,7 +94,7 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
               size="sm"
               className="h-6 w-6 p-0"
               onClick={() => copyToClipboard(owner.username)}
-              title="Копіювати логін"
+              title="Copy username"
             >
               {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
             </Button>
@@ -110,7 +109,7 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
                 : "bg-yellow-100 text-yellow-800"
             }`}
           >
-            {owner.status === "active" ? "активний" : "неактивний"}
+            {owner.status === "active" ? "active" : "inactive"}
           </span>
         </TableCell>
         <TableCell className="text-sm text-gray-500">{formattedDate}</TableCell>
@@ -131,10 +130,10 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
               {isLoading && !showDeleteDialog ? (
                 <span className="inline-flex items-center">
                   <span className="animate-spin mr-2 h-4 w-4 border-b-2 rounded-full border-primary"></span>
-                  Оновлення...
+                  Updating...
                 </span>
               ) : (
-                owner.status === "active" ? "Деактивувати" : "Активувати"
+                owner.status === "active" ? "Deactivate" : "Activate"
               )}
             </Button>
             
@@ -146,7 +145,7 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
               className="ml-2"
             >
               <Trash2 size={16} className="mr-1" />
-              Видалити
+              Delete
             </Button>
           </div>
         </TableCell>
@@ -155,14 +154,14 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Видалення власника кафе</AlertDialogTitle>
+            <AlertDialogTitle>Delete cafe owner</AlertDialogTitle>
             <AlertDialogDescription>
-              Ви дійсно бажаєте видалити власника "{owner.name}"?
-              Цю дію неможливо скасувати.
+              Are you sure you want to delete the owner "{owner.name}"?
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Скасувати</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               disabled={isLoading}
@@ -171,10 +170,10 @@ export const OwnerTableRow = ({ owner, onStatusChange, onDeleteOwner }: OwnerTab
               {isLoading ? (
                 <span className="inline-flex items-center">
                   <span className="animate-spin mr-2 h-4 w-4 border-b-2 rounded-full border-destructive-foreground"></span>
-                  Видалення...
+                  Deleting...
                 </span>
               ) : (
-                "Так, видалити"
+                "Yes, delete"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

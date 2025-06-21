@@ -26,11 +26,11 @@ const AdminLoginForm = ({
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Ім'я користувача</Label>
+        <Label htmlFor="username">Username</Label>
         <Input
           id="username"
           type="text"
-          placeholder="Введіть ім'я адміністратора"
+          placeholder="Enter administrator username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -38,11 +38,11 @@ const AdminLoginForm = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Пароль</Label>
+        <Label htmlFor="password">Password</Label>
         <Input
           id="password"
           type="password"
-          placeholder="Введіть пароль"
+          placeholder="Enter password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -54,10 +54,10 @@ const AdminLoginForm = ({
         {(isSubmitting || loading) ? (
           <>
             <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-            Вхід...
+            Logging in...
           </>
         ) : (
-          "Увійти як адмін"
+          "Login as Admin"
         )}
       </Button>
     </form>

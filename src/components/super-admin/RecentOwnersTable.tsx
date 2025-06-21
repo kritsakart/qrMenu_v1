@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,8 +21,8 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
       await navigator.clipboard.writeText(text);
       setCopiedIds(prev => ({...prev, [ownerId]: type}));
       toast({
-        title: "Скопійовано",
-        description: `${type === 'username' ? 'Логін' : 'Пароль'} "${text}" скопійовано в буфер обміну`,
+        title: "Copied",
+        description: `${type === 'username' ? 'Username' : 'Password'} "${text}" copied to clipboard`,
       });
       
       // Remove copied status after 2 seconds
@@ -37,11 +36,11 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
         });
       }, 2000);
     } catch (err) {
-      console.error('Не вдалося скопіювати текст:', err);
+      console.error('Failed to copy text:', err);
       toast({
         variant: "destructive",
-        title: "Помилка копіювання",
-        description: "Не вдалося скопіювати текст в буфер обміну"
+        title: "Copy error",
+        description: "Failed to copy text to clipboard"
       });
     }
   };
@@ -110,7 +109,7 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
               <td className="px-4 py-4 whitespace-nowrap">
                 <div className="flex flex-col space-y-1">
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-500">Логін:</span>
+                    <span className="text-xs text-gray-500">Username:</span>
                     <span>{owner.username}</span>
                     <Button
                       variant="ghost"
@@ -120,7 +119,7 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
                         e.stopPropagation();
                         copyToClipboard(owner.username, owner.id, 'username');
                       }}
-                      title="Копіювати логін"
+                      title="Copy username"
                     >
                       {copiedIds[owner.id] === 'username' ? 
                         <Check size={14} className="text-green-500" /> : 
@@ -129,7 +128,7 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
                     </Button>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-500">Пароль:</span>
+                    <span className="text-xs text-gray-500">Password:</span>
                     <span>{owner.password}</span>
                     <Button
                       variant="ghost"
@@ -139,7 +138,7 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
                         e.stopPropagation();
                         copyToClipboard(owner.password, owner.id, 'password');
                       }}
-                      title="Копіювати пароль"
+                      title="Copy password"
                     >
                       {copiedIds[owner.id] === 'password' ? 
                         <Check size={14} className="text-green-500" /> : 
@@ -156,7 +155,7 @@ export const RecentOwnersTable = ({ owners, isLoading, error }: RecentOwnersTabl
                     ? "bg-green-100 text-green-800" 
                     : "bg-yellow-100 text-yellow-800"
                 }`}>
-                  {owner.status === "active" ? "активний" : "неактивний"}
+                  {owner.status === "active" ? "active" : "inactive"}
                 </span>
               </td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">

@@ -23,22 +23,22 @@ const CafeLoginForm = ({
   const handleLocationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     // Store the raw input value without modifications
-    console.log("Введення в полі локації:", value);
-    console.log("Тип значення:", typeof value);
-    console.log("Код символів:", Array.from(value).map(c => c.charCodeAt(0)));
+    console.log("Location field input:", value);
+    console.log("Value type:", typeof value);
+    console.log("Character codes:", Array.from(value).map(c => c.charCodeAt(0)));
     setUsername(value);
   };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="location-code">Код локації</Label>
+        <Label htmlFor="location-code">Location Code</Label>
         <div className="relative">
           <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
             id="location-code"
             type="text"
-            placeholder="Введіть код локації кафе"
+            placeholder="Enter cafe location code"
             value={username}
             onChange={handleLocationCodeChange}
             required
@@ -48,7 +48,7 @@ const CafeLoginForm = ({
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Введіть унікальний код локації кафе для входу
+          Enter the unique cafe location code to log in
         </p>
       </div>
       
@@ -56,10 +56,10 @@ const CafeLoginForm = ({
         {(isSubmitting || loading) ? (
           <>
             <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-            Вхід...
+            Logging in...
           </>
         ) : (
-          "Увійти в кафе"
+          "Login to Cafe"
         )}
       </Button>
     </form>
