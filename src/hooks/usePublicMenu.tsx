@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MenuCategory, MenuItem, Location, Table, MenuItemVariant } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 
-export const usePublicMenu = (locationId: string, tableId: string) => {
+export const usePublicMenu = (locationShortId: string, tableShortId: string) => {
   const [location, setLocation] = useState<Location | null>(null);
   const [table, setTable] = useState<Table | null>(null);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -153,8 +153,8 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
 
   useEffect(() => {
     const fetchMenuData = async () => {
-      if (!locationId || !tableId) {
-        // console.log("🔍 PUBLIC MENU: Missing locationId or tableId:", { locationId, tableId });
+      if (!locationShortId || !tableShortId) {
+        // console.log("🔍 PUBLIC MENU: Missing locationShortId or tableShortId:", { locationShortId, tableShortId });
         setIsLoading(false);
         return;
       }
@@ -163,36 +163,36 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
         setIsLoading(true);
         setError(null);
 
-        // console.log("🔍 PUBLIC MENU: Starting fetch for location:", locationId, "tableId from URL:", tableId);
+        // console.log("🔍 PUBLIC MENU: Starting fetch for location:", locationShortId, "tableShortId from URL:", tableShortId);
         // console.log("🔍 PUBLIC MENU: Full URL:", window.location.href);
 
-        // Remove initial fetch for all locations as it can be a performance bottleneck
-        // console.log("🔍 PUBLIC MENU: Checking all locations in database...");
-        // const { data: allLocations, error: allLocationsError } = await supabase
-        //   .from('locations')
-        //   .select('*');
+        // Try to fetch location data using short_id first, then fallback to UUID
+        // console.log("🔍 PUBLIC MENU: Looking for location with short_id:", locationShortId);
         
-        // console.log("🔍 PUBLIC MENU: All locations in database:", allLocations?.map(loc => ({
-        //   id: loc.id,
-        //   name: loc.name,
-        //   cafe_id: loc.cafe_id
-        // })));
-        // if (allLocationsError) {
-        //   console.error("❌ PUBLIC MENU: Error fetching all locations:", allLocationsError);
-        // }
-
-        // setAllLocations(allLocations || []);
-
-        // Fetch location data with cache busting
-        // console.log("🔍 PUBLIC MENU: Looking for specific location:", locationId);
-        // console.log("🔍 PUBLIC MENU: SQL Query:", `SELECT * FROM locations WHERE id = '${locationId}'`);
+        let locationData = null;
+        let locationError = null;
         
-        const cacheBreaker = new Date().getTime();
-        const { data: locationData, error: locationError } = await supabase
+        // First try with short_id
+        const shortIdResult = await supabase
           .from('locations')
           .select('*')
-          .eq('id', locationId)
+          .eq('short_id', locationShortId)
           .maybeSingle();
+          
+        if (shortIdResult.data) {
+          locationData = shortIdResult.data;
+        } else {
+          // Fallback to UUID search
+          console.log("🔍 PUBLIC MENU: Short ID not found, trying UUID:", locationShortId);
+          const uuidResult = await supabase
+            .from('locations')
+            .select('*')
+            .eq('id', locationShortId)
+            .maybeSingle();
+            
+          locationData = uuidResult.data;
+          locationError = uuidResult.error;
+        }
 
         // console.log("🔍 PUBLIC MENU: Raw location data from database:", locationData);
         // console.log("🔍 PUBLIC MENU: Location error if any:", locationError);
@@ -203,13 +203,8 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
         }
 
         if (!locationData) {
-          // console.error("❌ PUBLIC MENU: Location not found for ID:", locationId);
-          // console.log("🔍 PUBLIC MENU: Available locations:", allLocations?.map(l => ({ 
-          //   id: l.id, 
-          //   name: l.name,
-          //   cafe_id: l.cafe_id 
-          // })));
-          throw new Error(`Локацію з ID ${locationId} не знайдено.`);
+          // console.error("❌ PUBLIC MENU: Location not found for ID:", locationShortId);
+          throw new Error(`Локацію з ID ${locationShortId} не знайдено.`);
         }
 
         // console.log("✅ PUBLIC MENU: Location found:", locationData);
@@ -218,26 +213,44 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           cafeId: locationData.cafe_id,
           name: locationData.name,
           address: locationData.address,
+          shortId: locationData.short_id,
           createdAt: locationData.created_at
         });
 
-        // Fetch all tables for this location
-        const { data: allTables, error: allTablesError } = await supabase
-          .from('tables')
-          .select('id, name, location_id, qr_code, qr_code_url, created_at')
-          .eq('location_id', locationId);
+        // Try to fetch table by short_id first, then fallback to UUID
+        let tableData = null;
+        let tableError = null;
         
-        // console.log("🔍 PUBLIC MENU: All tables for location:", allTables);
-        if (allTablesError) {
-          // console.error("❌ PUBLIC MENU: Error fetching tables for location:", allTablesError);
+        // First try with short_id
+        const tableShortIdResult = await supabase
+          .from('tables')
+          .select('*')
+          .eq('short_id', tableShortId)
+          .eq('location_id', locationData.id)
+          .maybeSingle();
+          
+        if (tableShortIdResult.data) {
+          tableData = tableShortIdResult.data;
+        } else {
+          // Fallback to UUID search
+          console.log("🔍 PUBLIC MENU: Table short ID not found, trying UUID:", tableShortId);
+          const tableUuidResult = await supabase
+            .from('tables')
+            .select('*')
+            .eq('id', tableShortId)
+            .eq('location_id', locationData.id)
+            .maybeSingle();
+            
+          tableData = tableUuidResult.data;
+          tableError = tableUuidResult.error;
+        }
+        
+        // console.log("🔍 PUBLIC MENU: Table lookup result:", tableData);
+        if (tableError) {
+          // console.error("❌ PUBLIC MENU: Error fetching table:", tableError);
         }
 
-        // Find table by matching the tableId with the table ID directly
-        // The tableId in URL is now the actual table ID from database
-        const matchingTable = allTables?.find(table => {
-          // console.log("🔍 PUBLIC MENU: Comparing tableId:", tableId, "with table ID:", table.id, "for table:", table.name);
-          return table.id === tableId;
-        });
+        const matchingTable = tableData;
 
         // console.log("🔍 PUBLIC MENU: Found matching table:", matchingTable);
 
@@ -258,6 +271,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
           name: matchingTable.name,
           qrCode: matchingTable.qr_code,
           qrCodeUrl: matchingTable.qr_code_url,
+          shortId: matchingTable.short_id,
           createdAt: matchingTable.created_at
         });
 
@@ -350,7 +364,7 @@ export const usePublicMenu = (locationId: string, tableId: string) => {
     };
 
     fetchMenuData();
-  }, [locationId, tableId, toast]);
+  }, [locationShortId, tableShortId, toast]);
 
   return {
     location,

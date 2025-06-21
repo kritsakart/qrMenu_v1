@@ -100,6 +100,7 @@ const LocationsManagement = () => {
         cafeId: loc.cafe_id,
         name: loc.name,
         address: loc.address,
+        shortId: loc.short_id || undefined,
         createdAt: loc.created_at
       })) || []);
       
@@ -149,6 +150,7 @@ const LocationsManagement = () => {
         cafeId: data.cafe_id,
         name: data.name,
         address: data.address,
+        shortId: data.short_id || undefined,
         createdAt: data.created_at
       }]);
       

@@ -16,6 +16,7 @@ export type Location = {
   cafeId: string;
   name: string;
   address: string;
+  shortId?: string; // Optional for backward compatibility
   createdAt: string;
 };
 
@@ -25,6 +26,7 @@ export type Table = {
   name: string; // наприклад, "Стіл 1", "Місце біля бару 3"
   qrCode: string; // URL до зображення QR-коду або дані
   qrCodeUrl: string; // URL, на який вказує QR-код
+  shortId?: string; // Optional for backward compatibility
   createdAt: string;
 };
 
@@ -101,6 +103,7 @@ export const mapSupabaseLocation = (location: any): Location => ({
   cafeId: location.cafe_id,
   name: location.name,
   address: location.address,
+  shortId: location.short_id || undefined,
   createdAt: location.created_at
 });
 
@@ -110,6 +113,7 @@ export const mapSupabaseTable = (table: any): Table => ({
   name: table.name,
   qrCode: table.qr_code,
   qrCodeUrl: table.qr_code_url,
+  shortId: table.short_id || undefined,
   createdAt: table.created_at
 });
 

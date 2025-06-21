@@ -46,6 +46,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          short_id: string
         }
         Insert: {
           address: string
@@ -53,6 +54,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          short_id?: string
         }
         Update: {
           address?: string
@@ -60,6 +62,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          short_id?: string
         }
         Relationships: [
           {
@@ -241,6 +244,7 @@ export type Database = {
           name: string
           qr_code: string
           qr_code_url: string
+          short_id: string
         }
         Insert: {
           created_at?: string
@@ -249,6 +253,7 @@ export type Database = {
           name: string
           qr_code: string
           qr_code_url: string
+          short_id?: string
         }
         Update: {
           created_at?: string
@@ -257,6 +262,7 @@ export type Database = {
           name?: string
           qr_code?: string
           qr_code_url?: string
+          short_id?: string
         }
         Relationships: [
           {

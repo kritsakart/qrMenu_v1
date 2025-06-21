@@ -45,6 +45,7 @@ export const useTablesManagement = (locationId: string) => {
           cafeId: data.cafe_id,
           name: data.name,
           address: data.address,
+          shortId: data.short_id || undefined, // Fallback to undefined if short_id doesn't exist
           createdAt: data.created_at
         });
       }
@@ -81,6 +82,7 @@ export const useTablesManagement = (locationId: string) => {
           name: table.name,
           qrCode: table.qr_code,
           qrCodeUrl: table.qr_code_url,
+          shortId: table.short_id || undefined, // Fallback to undefined if short_id doesn't exist
           createdAt: table.created_at
         })));
       }
@@ -100,23 +102,48 @@ export const useTablesManagement = (locationId: string) => {
     if (!locationId) return;
     
     try {
-      // Generate a unique table ID first
-      const tempId = nanoid();
-      const qrCodeUrl = `/menu/${locationId}/${tempId}`;
-      
-      console.log("🔧 Creating table with URL:", qrCodeUrl);
       console.log("🔧 Location ID:", locationId);
       console.log("🔧 Table name:", tableName);
       
+      // Check if short_id columns exist by trying to get location data
+      let qrCodeUrl = `/menu/${locationId}`; // fallback URL with location ID only
+      let shortId = null;
+      
+      try {
+        const { data: locationData, error: locationError } = await supabaseAdmin
+          .from('locations')
+          .select('short_id')
+          .eq('id', locationId)
+          .single();
+          
+        if (!locationError && locationData && locationData.short_id) {
+          // If short_id exists, use it
+          shortId = nanoid(6);
+          qrCodeUrl = `/menu/${locationData.short_id}/${shortId}`;
+          console.log("🔧 Using short IDs - Location short ID:", locationData.short_id, "Table short ID:", shortId);
+        } else {
+          console.log("🔧 Short IDs not available, using full UUIDs");
+        }
+      } catch (shortIdError) {
+        console.log("🔧 Short ID columns don't exist yet, using fallback URL");
+      }
+      
+      const insertData: any = {
+        location_id: locationId,
+        name: tableName,
+        qr_code: `table-${Date.now()}`, // Use timestamp for QR code reference
+        qr_code_url: qrCodeUrl
+      };
+      
+      // Only add short_id if we have it
+      if (shortId) {
+        insertData.short_id = shortId;
+      }
+      
+      // Let Supabase generate the UUID automatically
       const { data, error } = await supabaseAdmin
         .from('tables')
-        .insert({
-          id: tempId,
-          location_id: locationId,
-          name: tableName,
-          qr_code: `table-${tempId}`,
-          qr_code_url: qrCodeUrl
-        })
+        .insert(insertData)
         .select()
         .single();
         
@@ -126,11 +153,30 @@ export const useTablesManagement = (locationId: string) => {
       }
       
       if (data) {
+        // Update QR code URL to include the actual table ID
+        let finalQrCodeUrl = data.qr_code_url;
+        
+        if (shortId && data.short_id) {
+          // Short ID already included in URL
+          finalQrCodeUrl = data.qr_code_url;
+        } else {
+          // Add table ID to URL for full UUID version
+          finalQrCodeUrl = `/menu/${locationId}/${data.id}`;
+        }
+        
+        // Update the table record with the correct QR code URL
+        if (finalQrCodeUrl !== data.qr_code_url) {
+          await supabaseAdmin
+            .from('tables')
+            .update({ qr_code_url: finalQrCodeUrl })
+            .eq('id', data.id);
+        }
+        
         console.log("✅ Table created successfully:", {
           tableId: data.id,
           locationId: data.location_id,
-          qrCodeUrl: data.qr_code_url,
-          fullUrl: `${window.location.origin}${data.qr_code_url}`
+          qrCodeUrl: finalQrCodeUrl,
+          fullUrl: `${window.location.origin}${finalQrCodeUrl}`
         });
         
         const newTableData: Table = {
@@ -138,7 +184,8 @@ export const useTablesManagement = (locationId: string) => {
           locationId: data.location_id,
           name: data.name,
           qrCode: data.qr_code,
-          qrCodeUrl: data.qr_code_url,
+          qrCodeUrl: finalQrCodeUrl,
+          shortId: data.short_id || undefined, // Fallback to undefined if short_id doesn't exist
           createdAt: data.created_at
         };
         

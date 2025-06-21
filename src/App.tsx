@@ -69,7 +69,7 @@ const App = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/menu/:locationId/:tableId" element={<MenuPage />} />
+              <Route path="/menu/:locationShortId/:tableShortId" element={<MenuPage />} />
               <Route path="/cafe-owners-table" element={<CafeOwnersTable />} />
               
               {/* Super Admin Routes */}

@@ -17,6 +17,7 @@ A modern QR code menu system for restaurants and cafes, built with React, TypeSc
 - **Responsive Design**: Works perfectly on mobile, tablet, and desktop
 - **Admin Dashboard**: Complete management interface for restaurant owners
 - **Food List Cart**: Modern shopping cart experience (no checkout/payment)
+- **Optimized URLs**: Short, user-friendly menu URLs for better QR code scanning
 
 ## 🛠️ Tech Stack
 
@@ -71,10 +72,17 @@ npm run dev
 
 The application uses Supabase with the following main tables:
 - `cafe_owners` - Restaurant owner accounts
-- `locations` - Restaurant locations
-- `tables` - Individual tables per location
+- `locations` - Restaurant locations with short_id for URL optimization
+- `tables` - Individual tables per location with short_id for URL optimization
 - `menu_categories` - Menu categories
 - `menu_items` - Menu items with variants support
+
+### URL Optimization
+The system uses short IDs to create user-friendly URLs:
+- **Before**: `/menu/eccc29e2-c1e8-421a-bbc8-76bca73cb16f/ec076832-3327-4bc6-8fa2-8716537f8c60` (80+ characters)
+- **After**: `/menu/a1b2c3d4/x9y8z7` (~20 characters)
+
+To apply URL optimization to existing data, run the `update_short_ids.sql` script in your database.
 
 ## 🚀 Deployment
 

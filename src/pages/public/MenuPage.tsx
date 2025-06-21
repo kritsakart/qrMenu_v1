@@ -48,10 +48,10 @@ const MenuItemImage = ({ imageUrl, itemName, size = "md" }: {
 };
 
 const MenuPage = () => {
-  const { locationId, tableId } = useParams<{ locationId: string, tableId: string }>();
+  const { locationShortId, tableShortId } = useParams<{ locationShortId: string, tableShortId: string }>();
   const { toast } = useToast();
   
-  console.log("🔍 PUBLIC MENU PAGE: locationId:", locationId, "tableId:", tableId);
+  console.log("🔍 PUBLIC MENU PAGE: locationShortId:", locationShortId, "tableShortId:", tableShortId);
   
   const {
     location,
@@ -61,7 +61,7 @@ const MenuPage = () => {
     isLoading,
     error,
     allLocations
-  } = usePublicMenu(locationId || "", tableId || "");
+  } = usePublicMenu(locationShortId || "", tableShortId || "");
   
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<OrderItem[]>([]);
