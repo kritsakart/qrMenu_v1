@@ -1,18 +1,18 @@
-
 import { useState, useEffect } from "react";
-import { MenuItem } from "@/types/models";
+import { MenuItem, MenuCategory } from "@/types/models";
 import { CategoryList } from "@/components/menu-builder/CategoryList";
 import { MenuItemList } from "@/components/menu-builder/MenuItemList";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MenuPageContentProps {
-  categories: any[];
+  categories: MenuCategory[];
   menuItems: MenuItem[];
   selectedCategoryId: string | null;
   setSelectedCategoryId: (id: string) => void;
   categoriesLoading: boolean;
   setSelectedMenuItem: (item: MenuItem | null) => void;
   refreshMenuItems: () => void;
+  onReorderCategories?: (reorderedCategories: MenuCategory[]) => void;
   
   // Dialog openers
   setIsAddCategoryDialogOpen: (open: boolean) => void;
@@ -31,6 +31,7 @@ export const MenuPageContent = ({
   categoriesLoading,
   setSelectedMenuItem,
   refreshMenuItems,
+  onReorderCategories,
   
   // Dialog openers
   setIsAddCategoryDialogOpen,
@@ -105,6 +106,7 @@ export const MenuPageContent = ({
           onAddCategory={() => setIsAddCategoryDialogOpen(true)}
           onEditCategory={openEditCategoryDialog}
           onDeleteCategory={openDeleteCategoryDialog}
+          onReorderCategories={onReorderCategories}
           isLoading={categoriesLoading}
         />
       </div>
@@ -112,7 +114,7 @@ export const MenuPageContent = ({
       {/* Menu items content */}
       <div className="lg:col-span-2">
         <MenuItemList
-          title={currentCategoryName || "Пункти меню"}
+          title={currentCategoryName || "Menu Items"}
           menuItems={menuItems}
           selectedCategoryId={selectedCategoryId}
           onAddItem={() => setIsAddMenuItemDialogOpen(true)}

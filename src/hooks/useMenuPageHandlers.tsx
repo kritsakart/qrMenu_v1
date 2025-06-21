@@ -1,13 +1,14 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuItem, MenuCategory } from "@/types/models";
 import { useMenuCategories } from "@/hooks/menu-categories";
 import { useMenuItems } from "@/hooks/useMenuItems";
+import { useAuth } from "@/contexts/AuthContext";
 import { type MenuItemFormState } from "@/components/menu-builder/dialogs/MenuItemDialogs";
 
 export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   
   const { 
@@ -16,7 +17,8 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
     error: categoriesError,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    updateCategoriesOrder
   } = useMenuCategories();
   
   const { 
@@ -135,7 +137,26 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
       return false;
     }
   };
-  
+
+  const handleReorderCategories = async (reorderedCategories: MenuCategory[]) => {
+    if (!user?.cafeId) {
+      console.error("❌ handleReorderCategories - User cafeId not found");
+      return;
+    }
+
+    try {
+      console.log("🔄 Reordering categories:", reorderedCategories.map(c => ({ id: c.id, name: c.name })));
+      await updateCategoriesOrder(reorderedCategories, user.cafeId);
+    } catch (err) {
+      console.error("❌ Error reordering categories:", err);
+      toast({
+        variant: "destructive",
+        title: "Помилка переупорядкування",
+        description: "Не вдалось змінити порядок категорій",
+      });
+    }
+  };
+
   // MenuItem handlers
   const handleAddMenuItem = async (formData: MenuItemFormState): Promise<MenuItem | undefined> => {
     console.log("🎯 DIAGNOSTIC: handleAddMenuItem - selectedCategoryId:", selectedCategoryId);
@@ -281,6 +302,7 @@ export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
     handleAddCategory,
     handleUpdateCategory,
     handleDeleteCategory,
+    handleReorderCategories,
     
     handleAddMenuItem,
     handleUpdateMenuItem,

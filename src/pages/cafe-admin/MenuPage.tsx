@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -47,6 +46,7 @@ const MenuPage = () => {
     handleAddCategory,
     handleUpdateCategory,
     handleDeleteCategory,
+    handleReorderCategories,
     handleAddMenuItem,
     handleUpdateMenuItem,
     handleDeleteMenuItem,
@@ -135,6 +135,7 @@ const MenuPage = () => {
         categoriesLoading={categoriesLoading}
         setSelectedMenuItem={setSelectedMenuItem}
         refreshMenuItems={refreshMenuItems}
+        onReorderCategories={handleReorderCategories}
         
         setIsAddCategoryDialogOpen={setIsAddCategoryDialogOpen}
         setIsEditCategoryDialogOpen={setIsEditCategoryDialogOpen}

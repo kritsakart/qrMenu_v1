@@ -1,12 +1,19 @@
-
 import { useCallback } from "react";
 import { MenuCategory } from "@/types/models";
 import { useFetchMenuCategories } from "./useFetchMenuCategories";
 import { useAddMenuCategory } from "./useAddMenuCategory";
 import { useUpdateMenuCategory } from "./useUpdateMenuCategory";
 import { useDeleteMenuCategory } from "./useDeleteMenuCategory";
+import { useUpdateMenuCategoryOrder, useUpdateMultipleMenuCategoriesOrder } from "./useUpdateMenuCategoryOrder";
 
-export { useFetchMenuCategories, useAddMenuCategory, useUpdateMenuCategory, useDeleteMenuCategory };
+export { 
+  useFetchMenuCategories, 
+  useAddMenuCategory, 
+  useUpdateMenuCategory, 
+  useDeleteMenuCategory,
+  useUpdateMenuCategoryOrder,
+  useUpdateMultipleMenuCategoriesOrder
+};
 export type { MenuCategoryData } from "./types";
 
 // Main hook that composes all the individual hooks
@@ -30,6 +37,24 @@ export const useMenuCategories = () => {
   const { addCategory } = useAddMenuCategory(categories, handleCategoryAdded);
   const { updateCategory } = useUpdateMenuCategory(handleCategoriesUpdated, categories);
   const { deleteCategory } = useDeleteMenuCategory(handleCategoriesUpdated, categories);
+  const updateCategoryOrderMutation = useUpdateMultipleMenuCategoriesOrder();
+
+  const updateCategoriesOrder = useCallback((reorderedCategories: MenuCategory[], locationId: string) => {
+    console.log("🔄 Updating categories order locally:", reorderedCategories);
+    
+    // Оновлюємо локальний стан негайно
+    setCategories(reorderedCategories);
+    
+    // Підготовка оновлень для бази даних
+    const updates = reorderedCategories.map((category, index) => ({
+      categoryId: category.id,
+      newOrder: index + 1,
+      locationId
+    }));
+    
+    // Оновлюємо порядок в базі даних
+    updateCategoryOrderMutation.mutate(updates);
+  }, [setCategories, updateCategoryOrderMutation]);
 
   return {
     categories,
@@ -38,6 +63,7 @@ export const useMenuCategories = () => {
     fetchCategories,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    updateCategoriesOrder
   };
 };
