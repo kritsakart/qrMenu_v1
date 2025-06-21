@@ -105,8 +105,8 @@ const MenuPage = () => {
     setCart([...cart, cartItem]);
     
     toast({
-      title: "Додано до замовлення",
-      description: `${item.name} додано до вашого замовлення.`,
+      title: "Added to Order",
+      description: `${item.name} added to your order.`,
     });
   };
 
@@ -127,7 +127,7 @@ const MenuPage = () => {
 
   const openMenuItemDialog = (item: MenuItem) => {
     setSelectedMenuItem(item);
-    // Встановлюємо дефолтний варіант якщо є варіанти
+    // Set default variant if variants exist
     if (item.variants && item.variants.length > 0) {
       const defaultVariant = item.variants.find(v => v.isDefault) || item.variants[0];
       setSelectedVariant(defaultVariant.id);
@@ -139,14 +139,14 @@ const MenuPage = () => {
 
   const addToCartFromDialog = () => {
     if (selectedMenuItem) {
-      // Обчислюємо фінальну ціну з урахуванням варіанту
+      // Calculate final price including variant
       let finalPrice = selectedMenuItem.price;
       let finalName = selectedMenuItem.name;
       
       if (selectedVariant && selectedMenuItem.variants) {
         const variant = selectedMenuItem.variants.find(v => v.id === selectedVariant);
         if (variant) {
-          // Додаємо ціну варіанту до базової ціни
+          // Add variant price to base price
           finalPrice += variant.price;
           finalName += ` (${variant.name})`;
         }
@@ -164,8 +164,8 @@ const MenuPage = () => {
       setCart([...cart, cartItem]);
       
       toast({
-        title: "Додано до замовлення",
-        description: `${finalName} додано до вашого замовлення.`,
+        title: "Added to Order",
+        description: `${finalName} added to your order.`,
       });
       
       setIsMenuItemDialogOpen(false);
@@ -176,13 +176,13 @@ const MenuPage = () => {
   if (error) {
     return (
       <PublicLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-gray-50 flex items-center justify-center py-12">
           <div className="text-center max-w-md mx-auto p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Помилка завантаження меню</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Menu Loading Error</h1>
             <p className="text-muted-foreground mb-4">{error.message}</p>
             {allLocations && allLocations.length > 0 && (
               <div className="text-left text-xs bg-gray-100 rounded p-2 mb-2">
-                <div className="font-bold mb-1">Локації у базі:</div>
+                <div className="font-bold mb-1">Locations in database:</div>
                 <ul>
                   {allLocations.map(loc => (
                     <li key={loc.id}>
@@ -193,7 +193,7 @@ const MenuPage = () => {
               </div>
             )}
             <Button onClick={() => window.location.reload()}>
-              Спробувати ще раз
+              Try Again
             </Button>
           </div>
         </div>
@@ -205,10 +205,10 @@ const MenuPage = () => {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-gray-50 flex items-center justify-center py-12">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-muted-foreground">Завантаження меню...</p>
+            <p className="text-muted-foreground">Loading menu...</p>
           </div>
         </div>
       </PublicLayout>
@@ -219,10 +219,10 @@ const MenuPage = () => {
   if (!location || !table) {
     return (
       <PublicLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-gray-50 flex items-center justify-center py-12">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Заклад або столик не знайдено</h1>
-            <p className="text-muted-foreground">Перевірте правильність QR-коду або спробуйте ще раз.</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Restaurant or Table Not Found</h1>
+            <p className="text-muted-foreground">Please check your QR code or try again.</p>
           </div>
         </div>
       </PublicLayout>
@@ -233,13 +233,13 @@ const MenuPage = () => {
 
   return (
     <PublicLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <header className="bg-white shadow">
           <div className="container mx-auto px-4 py-6">
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{location.name}</h1>
-                <p className="text-sm text-muted-foreground">Столик: {table.name}</p>
+                <p className="text-sm text-muted-foreground">Table: {table.name}</p>
                 <p className="text-xs text-muted-foreground">{location.address}</p>
               </div>
               <Button 
@@ -247,7 +247,7 @@ const MenuPage = () => {
                 className="relative"
                 onClick={() => setIsCartDialogOpen(true)}
               >
-                Кошик {cart.length > 0 && (
+                Cart {cart.length > 0 && (
                   <span className="absolute -top-2 -right-2 bg-primary text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
                     {cart.length}
                   </span>
@@ -257,11 +257,11 @@ const MenuPage = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-6">
+        <main className="container mx-auto px-4 py-6 pb-20">
           {categories.length === 0 ? (
             <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-2">Меню поки що порожнє</h2>
-              <p className="text-muted-foreground">Категорії та страви будуть додані незабаром.</p>
+              <h2 className="text-xl font-semibold mb-2">Menu is Empty</h2>
+              <p className="text-muted-foreground">Categories and dishes will be added soon.</p>
             </div>
           ) : (
             <div>
@@ -292,7 +292,7 @@ const MenuPage = () => {
                   {menuItems
                     .filter((item) => item.categoryId === selectedCategoryId)
                     .sort((a, b) => {
-                      // Fallback на created_at якщо order не існує
+                      // Fallback to created_at if order doesn't exist
                       if (a.order !== undefined && b.order !== undefined) {
                         return a.order - b.order;
                       }
@@ -313,10 +313,10 @@ const MenuPage = () => {
                             <div className="flex justify-between items-center">
                               <span className="text-primary font-medium text-lg">
                                 ${(() => {
-                                  // Завжди починаємо з базової ціни
+                                  // Always start with base price
                                   let finalPrice = item.price;
                                   
-                                  // Якщо є варіанти і є дефолтний варіант, додаємо його ціну
+                                  // If variants exist and there's a default variant, add its price
                                   if (item.variants && item.variants.length > 0) {
                                     const defaultVariant = item.variants.find(v => v.isDefault);
                                     if (defaultVariant) {
@@ -347,7 +347,7 @@ const MenuPage = () => {
               
               {selectedCategoryId && menuItems.filter((item) => item.categoryId === selectedCategoryId).length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">У цій категорії поки що немає страв.</p>
+                  <p className="text-muted-foreground">No dishes in this category yet.</p>
                 </div>
               )}
             </div>
@@ -356,84 +356,82 @@ const MenuPage = () => {
 
         {/* Menu Item Detail Dialog */}
         <Dialog open={isMenuItemDialogOpen} onOpenChange={setIsMenuItemDialogOpen}>
-          <DialogPortal>
-            <DialogOverlay />
-            <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-hidden">
-              {selectedMenuItem && (
-                <>
-                  {/* Image section with proper aspect ratio */}
-                  <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {selectedMenuItem.imageUrl ? (
-                      <img 
-                        src={selectedMenuItem.imageUrl} 
-                        alt={selectedMenuItem.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-gray-400 text-6xl">🍽️</div>
-                    )}
-                    <button 
-                      onClick={() => setIsMenuItemDialogOpen(false)}
-                      className="absolute top-4 right-4 w-8 h-8 bg-white bg-opacity-80 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  
-                  {/* Content section */}
-                  <div className="p-6 space-y-4">
-                    <div>
-                      <h2 className="text-xl font-bold mb-2">{selectedMenuItem.name}</h2>
-                      <p className="text-sm text-gray-600 mb-3">{selectedMenuItem.description}</p>
-                      
-                      {/* Price display */}
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-2xl font-bold text-primary">
-                          ${(() => {
-                            // Завжди починаємо з базової ціни
-                            let finalPrice = selectedMenuItem.price;
-                            
-                            // Якщо є варіанти та вибрано якийсь варіант
-                            if (selectedMenuItem.variants && selectedMenuItem.variants.length > 0 && selectedVariant) {
-                              const variant = selectedMenuItem.variants.find(v => v.id === selectedVariant);
-                              if (variant) {
-                                // Додаємо ціну вибраного варіанту до базової ціни
-                                finalPrice += variant.price;
-                              }
-                            } else if (selectedMenuItem.variants && selectedMenuItem.variants.length > 0) {
-                              // Якщо нічого не вибрано, додаємо дефолтний варіант
-                              const defaultVariant = selectedMenuItem.variants.find(v => v.isDefault);
-                              if (defaultVariant) {
-                                finalPrice += defaultVariant.price;
-                              }
+          <DialogContent className="max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
+            {selectedMenuItem && (
+              <>
+                {/* Image section with proper aspect ratio */}
+                <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {selectedMenuItem.imageUrl ? (
+                    <img 
+                      src={selectedMenuItem.imageUrl} 
+                      alt={selectedMenuItem.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-gray-400 text-6xl">🍽️</div>
+                  )}
+                  <button 
+                    onClick={() => setIsMenuItemDialogOpen(false)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-white bg-opacity-80 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                {/* Content section - scrollable */}
+                <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+                  <div>
+                    <h2 className="text-xl font-bold mb-2">{selectedMenuItem.name}</h2>
+                    <p className="text-sm text-gray-600 mb-3">{selectedMenuItem.description}</p>
+                    
+                    {/* Price display */}
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-2xl font-bold text-primary">
+                        ${(() => {
+                          // Always start with base price
+                          let finalPrice = selectedMenuItem.price;
+                          
+                          // If variants exist and one is selected
+                          if (selectedMenuItem.variants && selectedMenuItem.variants.length > 0 && selectedVariant) {
+                            const variant = selectedMenuItem.variants.find(v => v.id === selectedVariant);
+                            if (variant) {
+                              // Add selected variant price to base price
+                              finalPrice += variant.price;
                             }
-                            
-                            return finalPrice.toFixed(2);
-                          })()}
-                        </span>
-                        {selectedMenuItem.weight && (
-                          <span className="text-sm text-gray-500">{selectedMenuItem.weight}</span>
-                        )}
-                      </div>
+                          } else if (selectedMenuItem.variants && selectedMenuItem.variants.length > 0) {
+                            // If nothing selected, add default variant
+                            const defaultVariant = selectedMenuItem.variants.find(v => v.isDefault);
+                            if (defaultVariant) {
+                              finalPrice += defaultVariant.price;
+                            }
+                          }
+                          
+                          return finalPrice.toFixed(2);
+                        })()}
+                      </span>
+                      {selectedMenuItem.weight && (
+                        <span className="text-sm text-gray-500">{selectedMenuItem.weight}</span>
+                      )}
+                    </div>
 
-                      {/* Variants selection */}
-                      {selectedMenuItem.variants && selectedMenuItem.variants.length > 0 && (
-                        <div className="space-y-3 mb-4">
-                          <h3 className="font-medium text-sm text-gray-700">Choose variant:</h3>
-                          <div className="space-y-2">
-                            {selectedMenuItem.variants.map((variant) => (
-                              <div 
-                                key={variant.id}
-                                className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                                  selectedVariant === variant.id 
-                                    ? 'border-primary bg-primary/5' 
-                                    : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                                onClick={() => setSelectedVariant(variant.id)}
-                              >
-                                <div className="flex justify-between items-center">
-                                  <span className="font-medium">{variant.name}</span>
-                                                                  <span className="text-sm">
+                    {/* Variants selection */}
+                    {selectedMenuItem.variants && selectedMenuItem.variants.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        <h3 className="font-medium text-sm text-gray-700">Choose variant:</h3>
+                        <div className="space-y-2">
+                          {selectedMenuItem.variants.map((variant) => (
+                            <div 
+                              key={variant.id}
+                              className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                                selectedVariant === variant.id 
+                                  ? 'border-primary bg-primary/5' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => setSelectedVariant(variant.id)}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">{variant.name}</span>
+                                <span className="text-sm">
                                   {variant.price === 0 
                                     ? 'No extra charge' 
                                     : variant.price > 0 
@@ -441,45 +439,44 @@ const MenuPage = () => {
                                       : `-$${Math.abs(variant.price).toFixed(2)}`
                                   }
                                 </span>
-                                </div>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                    
-                    <Button 
-                      onClick={addToCartFromDialog}
-                      className="w-full bg-black hover:bg-gray-800 text-white h-12"
-                    >
-                      Add to Cart
-                    </Button>
+                      </div>
+                    )}
                   </div>
-                </>
-              )}
-            </div>
-          </DialogPortal>
+                  
+                  <Button 
+                    onClick={addToCartFromDialog}
+                    className="w-full bg-black hover:bg-gray-800 text-white h-12"
+                  >
+                    Add to Cart
+                  </Button>
+                </div>
+              </>
+            )}
+          </DialogContent>
         </Dialog>
 
         {/* Cart Dialog */}
         <Dialog open={isCartDialogOpen} onOpenChange={setIsCartDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Ваше замовлення</DialogTitle>
+              <DialogTitle>Your Order</DialogTitle>
               <DialogDescription>
-                Перевірте страви перед оформленням
+                Review your items before checkout
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {cart.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">Ваш кошик порожній</p>
+                  <p className="text-muted-foreground">Your cart is empty</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {cart.map((item) => {
-                    // Знаходимо відповідний menuItem для отримання imageUrl
+                    // Find corresponding menuItem to get imageUrl
                     const menuItem = menuItems.find(mi => mi.id === item.menuItemId);
                     
                     return (
@@ -500,7 +497,7 @@ const MenuPage = () => {
                           size="sm"
                           onClick={() => handleRemoveFromCart(item.id)}
                         >
-                          Видалити
+                          Remove
                         </Button>
                       </div>
                     );
@@ -511,10 +508,10 @@ const MenuPage = () => {
             {cart.length > 0 && (
               <DialogFooter className="flex justify-between items-center">
                 <div className="text-lg font-bold">
-                  Загалом: ${totalAmount.toFixed(2)}
+                  Total: ${totalAmount.toFixed(2)}
                 </div>
                 <Button onClick={handleCheckout} className="bg-black hover:bg-gray-800 text-white">
-                  Оформити замовлення
+                  Checkout
                 </Button>
               </DialogFooter>
             )}
@@ -525,9 +522,9 @@ const MenuPage = () => {
         <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Оплата замовлення</DialogTitle>
+              <DialogTitle>Payment</DialogTitle>
               <DialogDescription>
-                Оберіть спосіб оплати
+                Choose your payment method
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
@@ -537,20 +534,20 @@ const MenuPage = () => {
                   className="w-full h-12 text-left justify-start"
                   onClick={handlePayment}
                 >
-                  💳 Картою
+                  💳 Card
                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full h-12 text-left justify-start"
                   onClick={handlePayment}
                 >
-                  💵 Готівкою
+                  💵 Cash
                 </Button>
               </div>
             </div>
             <DialogFooter>
               <div className="text-lg font-bold">
-                До сплати: ${totalAmount.toFixed(2)}
+                Total: ${totalAmount.toFixed(2)}
               </div>
             </DialogFooter>
           </DialogContent>
@@ -560,14 +557,14 @@ const MenuPage = () => {
         <Dialog open={isOrderSuccessDialogOpen} onOpenChange={setIsOrderSuccessDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>🎉 Замовлення прийнято!</DialogTitle>
+              <DialogTitle>🎉 Order Received!</DialogTitle>
               <DialogDescription>
-                Ваше замовлення було успішно оформлено. Очікуйте приготування.
+                Your order has been successfully placed. Please wait for preparation.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 text-center">
               <p className="text-muted-foreground">
-                Орієнтовний час приготування: 15-20 хвилин
+                Estimated preparation time: 15-20 minutes
               </p>
             </div>
             <DialogFooter>
@@ -575,7 +572,7 @@ const MenuPage = () => {
                 onClick={() => setIsOrderSuccessDialogOpen(false)}
                 className="w-full bg-black hover:bg-gray-800 text-white"
               >
-                Закрити
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>
