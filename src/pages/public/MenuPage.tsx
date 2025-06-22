@@ -19,12 +19,12 @@ const MenuItemImage = ({ imageUrl, itemName, size = "md" }: {
   const [imageError, setImageError] = useState(false);
   
   const sizeClasses = {
-    sm: "w-10 h-10",
+    sm: "w-16 h-16",
     md: "w-24 h-24"
   };
   
   const iconSizes = {
-    sm: "w-4 h-4",
+    sm: "w-8 h-8",
     md: "w-8 h-8"
   };
   
@@ -522,7 +522,7 @@ const MenuPage = () => {
                     const variantName = item.name.includes(' (') ? item.name.split(' (')[1].replace(')', '') : null;
                     
                     return (
-                      <div key={item.id} className="flex items-start space-x-3">
+                      <div key={item.id} className="flex items-start space-x-3 relative">
                         <div 
                           className="cursor-pointer flex-shrink-0"
                           onClick={() => {
@@ -539,7 +539,7 @@ const MenuPage = () => {
                           />
                         </div>
                         <div 
-                          className="flex-grow cursor-pointer min-w-0"
+                          className="flex-1 cursor-pointer -mt-[3px]"
                           onClick={() => {
                             if (menuItem) {
                               openMenuItemDialog(menuItem, true, item.id);
@@ -560,14 +560,16 @@ const MenuPage = () => {
                             ${item.price.toFixed(2)} x {item.quantity}
                           </p>
                         </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleRemoveFromFoodList(item.id)}
-                          className="flex-shrink-0 p-2 h-8 w-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-start h-16">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveFromFoodList(item.id)}
+                            className="flex-shrink-0 p-2 h-8 w-8"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -576,7 +578,7 @@ const MenuPage = () => {
             </div>
             {cart.length > 0 && (
               <DialogFooter className="flex justify-start items-center sm:justify-start">
-                <div className="text-lg font-bold text-left ml-[52px]">
+                <div className="text-lg font-bold text-left">
                   Total: ${totalAmount.toFixed(2)}
                 </div>
               </DialogFooter>
