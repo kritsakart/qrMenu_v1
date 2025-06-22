@@ -82,8 +82,8 @@ export default function BrandingPage() {
                 transformOrigin: 'center center'
               }}
             />
-            {/* Backdrop blur overlay */}
-            <div className="absolute inset-0 backdrop-blur-sm" />
+            {/* Backdrop blur overlay - зменшено до 2px */}
+            <div className="absolute inset-0" style={{ backdropFilter: 'blur(2px)' }} />
           </div>
         )}
         

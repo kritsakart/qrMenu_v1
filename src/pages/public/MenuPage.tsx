@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { OrderItem, MenuItem } from "@/types/models";
 import { usePublicMenu } from "@/hooks/usePublicMenu";
-import { Loader2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const MenuItemImage = ({ imageUrl, itemName, size = "md" }: { 
@@ -70,6 +70,8 @@ const MenuPage = () => {
   const [isMenuItemDialogOpen, setIsMenuItemDialogOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [isOpenedFromCart, setIsOpenedFromCart] = useState(false);
+  const [editingCartItemId, setEditingCartItemId] = useState<string | null>(null);
 
   // Set first category as selected when categories load
   useEffect(() => {
@@ -105,6 +107,7 @@ const MenuPage = () => {
     toast({
       title: "Added to Food List",
       description: `${item.name} added to your food list.`,
+      duration: 2000,
     });
   };
 
@@ -112,14 +115,52 @@ const MenuPage = () => {
     setCart(cart.filter(item => item.id !== itemId));
   };
 
-  const openMenuItemDialog = (item: MenuItem) => {
+  const openMenuItemDialog = (item: MenuItem, fromCart = false, cartItemId?: string) => {
     setSelectedMenuItem(item);
-    // Set default variant if variants exist
-    if (item.variants && item.variants.length > 0) {
-      const defaultVariant = item.variants.find(v => v.isDefault) || item.variants[0];
-      setSelectedVariant(defaultVariant.id);
+    setIsOpenedFromCart(fromCart);
+    setEditingCartItemId(cartItemId || null);
+    
+    // If opened from cart, find the existing cart item to get its variant
+    if (fromCart && cartItemId) {
+      const cartItem = cart.find(ci => ci.id === cartItemId);
+      if (cartItem && item.variants && item.variants.length > 0) {
+        // Try to find the variant that matches the cart item name
+        const matchingVariant = item.variants.find(v => 
+          cartItem.name.includes(`(${v.name})`)
+        );
+        if (matchingVariant) {
+          setSelectedVariant(matchingVariant.id);
+        } else {
+          // If no matching variant found, try to match by price
+          const cartItemPrice = cartItem.price - item.price; // Get variant price difference
+          const priceMatchingVariant = item.variants.find(v => 
+            Math.abs(v.price - cartItemPrice) < 0.01 // Allow small floating point differences
+          );
+          if (priceMatchingVariant) {
+            setSelectedVariant(priceMatchingVariant.id);
+          } else {
+            // Fallback to default variant
+            const defaultVariant = item.variants.find(v => v.isDefault) || item.variants[0];
+            setSelectedVariant(defaultVariant.id);
+          }
+        }
+      } else {
+        // Set default variant if variants exist
+        if (item.variants && item.variants.length > 0) {
+          const defaultVariant = item.variants.find(v => v.isDefault) || item.variants[0];
+          setSelectedVariant(defaultVariant.id);
+        } else {
+          setSelectedVariant(null);
+        }
+      }
     } else {
-      setSelectedVariant(null);
+      // Set default variant if variants exist
+      if (item.variants && item.variants.length > 0) {
+        const defaultVariant = item.variants.find(v => v.isDefault) || item.variants[0];
+        setSelectedVariant(defaultVariant.id);
+      } else {
+        setSelectedVariant(null);
+      }
     }
     setIsMenuItemDialogOpen(true);
   };
@@ -140,7 +181,7 @@ const MenuPage = () => {
       }
       
       const cartItem: OrderItem = {
-        id: `order-item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: editingCartItemId || `order-item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         menuItemId: selectedMenuItem.id,
         name: finalName,
         price: finalPrice,
@@ -148,14 +189,24 @@ const MenuPage = () => {
         selectedOptions: []
       };
       
-      setCart([...cart, cartItem]);
+      if (isOpenedFromCart && editingCartItemId) {
+        // Replace existing item in cart
+        setCart(cart.map(item => 
+          item.id === editingCartItemId ? cartItem : item
+        ));
+      } else {
+        // Add new item to cart
+        setCart([...cart, cartItem]);
+      }
       
       toast({
-        title: "Added to Food List",
-        description: `${finalName} added to your food list.`,
+        title: isOpenedFromCart ? "Saved" : "Added to Food List",
+        description: `${finalName} ${isOpenedFromCart ? 'saved successfully.' : 'added to your food list.'}`,
+        duration: 2000,
       });
       
       setIsMenuItemDialogOpen(false);
+      setEditingCartItemId(null);
     }
   };
 
@@ -342,8 +393,14 @@ const MenuPage = () => {
         </main>
 
         {/* Menu Item Dialog */}
-        <Dialog open={isMenuItemDialogOpen} onOpenChange={setIsMenuItemDialogOpen}>
-          <DialogContent className="max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col [&>button]:bg-white [&>button]:bg-opacity-80 [&>button]:rounded-full [&>button]:w-8 [&>button]:h-8 [&>button]:shadow-md [&>button]:hover:bg-opacity-100 [&>button]:transition-all">
+        <Dialog open={isMenuItemDialogOpen} onOpenChange={(open) => {
+          setIsMenuItemDialogOpen(open);
+          if (!open) {
+            setEditingCartItemId(null);
+            setIsOpenedFromCart(false);
+          }
+        }}>
+          <DialogContent className="max-w-md p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col [&>button]:bg-gray-200 [&>button]:rounded-full [&>button]:w-8 [&>button]:h-8 [&>button]:hover:bg-gray-300 [&>button]:transition-all [&>button]:shadow-none">
             {selectedMenuItem && (
               <>
                 {/* Image section with proper aspect ratio */}
@@ -432,7 +489,7 @@ const MenuPage = () => {
                     onClick={addToFoodListFromDialog}
                     className="w-full bg-black hover:bg-gray-800 text-white h-12"
                   >
-                    Add to Food List
+                    {isOpenedFromCart ? "Save" : "Add to Food List"}
                   </Button>
                 </div>
               </>
@@ -443,9 +500,9 @@ const MenuPage = () => {
         {/* Food List Dialog */}
         <Dialog open={isFoodListDialogOpen} onOpenChange={setIsFoodListDialogOpen}>
           <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Your Food List</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="text-left">
+              <DialogTitle className="text-left">Your Food List</DialogTitle>
+              <DialogDescription className="text-left">
                 Review your items before checkout
               </DialogDescription>
             </DialogHeader>
@@ -462,13 +519,31 @@ const MenuPage = () => {
                     
                     return (
                       <div key={item.id} className="flex items-center space-x-3">
-                        <MenuItemImage 
-                          imageUrl={menuItem?.imageUrl} 
-                          itemName={item.name}
-                          size="sm"
-                        />
-                        <div className="flex-grow">
-                          <h4 className="font-medium">{item.name}</h4>
+                        <div 
+                          className="cursor-pointer flex-shrink-0"
+                          onClick={() => {
+                            if (menuItem) {
+                              openMenuItemDialog(menuItem, true, item.id);
+                              setIsFoodListDialogOpen(false);
+                            }
+                          }}
+                        >
+                          <MenuItemImage 
+                            imageUrl={menuItem?.imageUrl} 
+                            itemName={item.name}
+                            size="sm"
+                          />
+                        </div>
+                        <div 
+                          className="flex-grow cursor-pointer min-w-0"
+                          onClick={() => {
+                            if (menuItem) {
+                              openMenuItemDialog(menuItem, true, item.id);
+                              setIsFoodListDialogOpen(false);
+                            }
+                          }}
+                        >
+                          <h4 className="font-medium truncate">{item.name}</h4>
                           <p className="text-sm text-muted-foreground">
                             ${item.price.toFixed(2)} x {item.quantity}
                           </p>
@@ -477,8 +552,9 @@ const MenuPage = () => {
                           variant="destructive"
                           size="sm"
                           onClick={() => handleRemoveFromFoodList(item.id)}
+                          className="flex-shrink-0 p-2 h-8 w-8"
                         >
-                          Remove
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     );
@@ -487,8 +563,8 @@ const MenuPage = () => {
               )}
             </div>
             {cart.length > 0 && (
-              <DialogFooter className="flex justify-between items-center">
-                <div className="text-lg font-bold">
+              <DialogFooter className="flex justify-start items-center sm:justify-start">
+                <div className="text-lg font-bold text-left">
                   Total: ${totalAmount.toFixed(2)}
                 </div>
               </DialogFooter>
