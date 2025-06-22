@@ -517,8 +517,12 @@ const MenuPage = () => {
                     // Find corresponding menuItem to get imageUrl
                     const menuItem = menuItems.find(mi => mi.id === item.menuItemId);
                     
+                    // Extract variant name from item name if it contains parentheses
+                    const baseItemName = item.name.split(' (')[0];
+                    const variantName = item.name.includes(' (') ? item.name.split(' (')[1].replace(')', '') : null;
+                    
                     return (
-                      <div key={item.id} className="flex items-center space-x-3">
+                      <div key={item.id} className="flex items-start space-x-3">
                         <div 
                           className="cursor-pointer flex-shrink-0"
                           onClick={() => {
@@ -543,8 +547,16 @@ const MenuPage = () => {
                             }
                           }}
                         >
-                          <h4 className="font-medium truncate">{item.name}</h4>
-                          <p className="text-sm text-muted-foreground">
+                          <h4 className="font-medium truncate">{baseItemName}</h4>
+                          {variantName && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-xs font-bold leading-none">+</span>
+                              </div>
+                              <span className="text-xs text-gray-600">{variantName}</span>
+                            </div>
+                          )}
+                          <p className="text-sm text-muted-foreground mt-1">
                             ${item.price.toFixed(2)} x {item.quantity}
                           </p>
                         </div>
@@ -564,7 +576,7 @@ const MenuPage = () => {
             </div>
             {cart.length > 0 && (
               <DialogFooter className="flex justify-start items-center sm:justify-start">
-                <div className="text-lg font-bold text-left">
+                <div className="text-lg font-bold text-left ml-[52px]">
                   Total: ${totalAmount.toFixed(2)}
                 </div>
               </DialogFooter>
