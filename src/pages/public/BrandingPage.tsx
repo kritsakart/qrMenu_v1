@@ -73,7 +73,7 @@ export default function BrandingPage() {
         
         {/* Cover Photo Section - Responsive height */}
         {location.coverImage && (
-          <div className="relative w-full h-[250px] sm:h-[30vh] md:h-[300px] overflow-hidden">
+          <div className="relative w-full h-[220px] sm:h-[28vh] md:h-[280px] overflow-hidden">
             <div 
               className="absolute inset-0 w-full h-full bg-cover bg-center"
               style={{
@@ -94,7 +94,7 @@ export default function BrandingPage() {
             className="absolute bg-white shadow-lg"
             style={{
               left: '50%',
-              top: 'clamp(80px, 15vh, 120px)', // Піднято вище (було 140px, 20vh, 172px)
+              top: 'clamp(60px, 12vh, 100px)', // Піднімаю ще вище (було 80px, 15vh, 120px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
@@ -106,7 +106,7 @@ export default function BrandingPage() {
             <div 
               className="absolute bg-[#C80505] rounded-full flex items-center justify-center overflow-hidden"
               style={{
-                left: 'clamp(25px, 6vw, 40px)', // Адаптивний відступ зліва
+                left: 'clamp(25px, 6vw, 40px)', // Повертаю оригінальні значення
                 top: '50%',
                 transform: 'translateY(-50%)',
                 width: 'clamp(70px, 12vw, 100px)', // Адаптивний розмір
@@ -138,10 +138,10 @@ export default function BrandingPage() {
             <div 
               className="absolute"
               style={{
-                left: 'clamp(110px, 22vw, 165px)', // Адаптивний відступ зліва
+                left: 'clamp(110px, 22vw, 165px)', // Повертаю оригінальні значення
                 top: '50%',
                 transform: 'translateY(-50%)',
-                right: 'clamp(15px, 4vw, 25px)' // Адаптивний відступ справа
+                right: 'clamp(15px, 4vw, 25px)' // Повертаю оригінальні значення
               }}
             >
               {/* Location Name - Responsive */}
@@ -179,7 +179,7 @@ export default function BrandingPage() {
               className="absolute bg-[#9EED86] shadow-lg overflow-hidden touch-pan-x"
               style={{
                 left: '50%',
-                top: 'clamp(250px, 35vh, 285px)', // Піднято вище (було 310px, 43vh, 365px)
+                top: 'clamp(220px, 32vh, 265px)', // Піднімаю вище (було 250px, 35vh, 285px)
                 transform: 'translateX(-50%)',
                 width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
                 height: 'clamp(150px, 22vh, 193px)', // Адаптивна висота
@@ -262,7 +262,7 @@ export default function BrandingPage() {
               className="absolute flex space-x-1"
               style={{
                 left: '50%',
-                top: 'clamp(415px, 59vh, 490px)', // Піднято вище (було 475px, 67vh, 570px)
+                top: 'clamp(385px, 56vh, 470px)', // Піднімаю вище (було 415px, 59vh, 490px)
                 transform: 'translateX(-50%)',
                 gap: 'clamp(2px, 0.5vw, 4px)' // Адаптивний gap
               }}
@@ -291,7 +291,7 @@ export default function BrandingPage() {
             className="absolute bg-black text-white flex items-center shadow-lg hover:bg-gray-800 transition-colors"
             style={{
               left: '50%',
-              top: 'clamp(440px, 62vh, 520px)', // Піднято значно вище (було 500px, 70vh, 603px)
+              top: 'clamp(410px, 59vh, 500px)', // Піднімаю ще вище (було 440px, 62vh, 520px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               fontSize: 'clamp(16px, 2.5vw, 20.48px)', // Адаптивний розмір шрифту
