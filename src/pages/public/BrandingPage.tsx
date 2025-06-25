@@ -73,17 +73,26 @@ export default function BrandingPage() {
         
         {/* Cover Photo Section - Responsive height */}
         {location.coverImage && (
-          <div className="relative w-full h-[220px] sm:h-[28vh] md:h-[280px] overflow-hidden">
+          <div className="relative w-full overflow-hidden" style={{ height: 'calc(220px + 70px + 50px)' }}>
             <div 
-              className="absolute inset-0 w-full h-full bg-cover bg-center"
+              className="absolute w-full bg-cover bg-center"
               style={{
                 backgroundImage: `url(${location.coverImage})`,
                 transform: 'scale(1.1)', // Slight zoom for better coverage
-                transformOrigin: 'center center'
+                transformOrigin: 'center center',
+                top: '-140px', // Розширюємо зображення ще більше вгору (70px margin + 70px додатково)
+                height: 'calc(100% + 140px)' // Збільшуємо висоту зображення на весь потрібний простір
               }}
             />
             {/* Backdrop blur overlay */}
-            <div className="absolute inset-0" style={{ backdropFilter: 'blur(2px)', filter: 'blur(2px)' }} />
+            <div className="absolute" style={{ 
+              backdropFilter: 'blur(2px)', 
+              filter: 'blur(2px)',
+              top: '-140px', // Також розширюємо blur overlay
+              left: '0',
+              right: '0',
+              height: 'calc(100% + 140px)'
+            }} />
           </div>
         )}
         
@@ -94,11 +103,11 @@ export default function BrandingPage() {
             className="absolute bg-white shadow-lg"
             style={{
               left: '50%',
-              top: 'clamp(10px, 8vh, 50px)', // Піднімаю на 50px (було 60px, 12vh, 100px)
+              top: 'calc(2vh + 10px - 70px - 20px)', // Піднімаю ще на 20 пікселів (загалом 90px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
-              width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
-              height: 'clamp(140px, 19vh, 164px)', // Адаптивна висота
+              width: 'clamp(280px, 88vw, 349px)', // Адаптивна ширина - зменшено на 40px
+              height: 'clamp(120px, 15vh, 135px)', // Зменшено висоту: було 140px,19vh,164px → стало 120px,15vh,135px
               borderRadius: 'clamp(20px, 4vw, 30px)' // Адаптивні заокруглення
             }}
           >
@@ -106,11 +115,11 @@ export default function BrandingPage() {
             <div 
               className="absolute bg-[#C80505] rounded-full flex items-center justify-center overflow-hidden"
               style={{
-                left: 'clamp(25px, 6vw, 40px)', // Повертаю оригінальні значення
+                left: 'clamp(15px, 4vw, 25px)', // Зменшено відступ зліва для вузьких екранів
                 top: '50%',
                 transform: 'translateY(-50%)',
-                width: 'clamp(70px, 12vw, 100px)', // Адаптивний розмір
-                height: 'clamp(70px, 12vw, 100px)'
+                width: 'clamp(60px, 10vw, 85px)', // Зменшено розмір логотипу
+                height: 'clamp(60px, 10vw, 85px)'
               }}
             >
               {location.logoImage ? (
@@ -126,7 +135,7 @@ export default function BrandingPage() {
                     fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                     fontWeight: 700,
                     letterSpacing: '-0.02em',
-                    fontSize: 'clamp(14px, 2.5vw, 20px)' // Адаптивний розмір шрифту
+                    fontSize: 'clamp(12px, 2vw, 16px)' // Зменшено розмір шрифту логотипу
                   }}
                 >
                   LOGO
@@ -138,21 +147,23 @@ export default function BrandingPage() {
             <div 
               className="absolute"
               style={{
-                left: 'clamp(110px, 22vw, 165px)', // Повертаю оригінальні значення
+                left: 'clamp(85px, 16vw, 120px)', // Зменшено відступ зліва для тексту
                 top: '50%',
                 transform: 'translateY(-50%)',
-                right: 'clamp(15px, 4vw, 25px)' // Повертаю оригінальні значення
+                right: 'clamp(10px, 3vw, 20px)', // Зменшено відступ справа
+                maxWidth: 'calc(100% - clamp(95px, 19vw, 140px))' // Додано максимальну ширину
               }}
             >
               {/* Location Name - Responsive */}
               <h2 
-                className="text-black font-bold leading-tight"
+                className="text-black font-bold leading-tight truncate" // Додано truncate для обрізання довгих назв
                 style={{
                   fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                   fontWeight: 700,
                   letterSpacing: '-0.02em',
-                  fontSize: 'clamp(20px, 4vw, 31px)', // Адаптивний розмір шрифту
-                  marginBottom: 'clamp(0px, 0.2vh, 1px)' // Адаптивний відступ
+                  fontSize: 'clamp(16px, 3.5vw, 28px)', // Зменшено розмір шрифту назви
+                  marginBottom: 'clamp(2px, 0.5vh, 4px)', // Збільшено відступ
+                  lineHeight: '1.1' // Зменшено висоту рядка
                 }}
               >
                 {location.name}
@@ -160,12 +171,13 @@ export default function BrandingPage() {
               
               {/* Address - Responsive */}
               <p 
-                className="text-black opacity-70"
+                className="text-black opacity-70 truncate" // Додано truncate для обрізання довгих адрес
                 style={{
                   fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                   fontWeight: 400,
                   letterSpacing: '-0.01em',
-                  fontSize: 'clamp(12px, 2vw, 15px)' // Адаптивний розмір шрифту
+                  fontSize: 'clamp(10px, 1.8vw, 13px)', // Зменшено розмір шрифту адреси
+                  lineHeight: '1.2' // Зменшено висоту рядка
                 }}
               >
                 {location.address || 'address'}
@@ -179,9 +191,9 @@ export default function BrandingPage() {
               className="absolute bg-[#9EED86] shadow-lg overflow-hidden touch-pan-x"
               style={{
                 left: '50%',
-                top: 'clamp(170px, 28vh, 215px)', // Піднімаю на 50px (було 220px, 32vh, 265px)
+                top: 'calc(25vh + 20px - 70px - 20px - 30px - 15px)', // Піднімаю ще на 15 пікселів (загалом 135px)
                 transform: 'translateX(-50%)',
-                width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
+                width: 'clamp(280px, 88vw, 349px)', // Адаптивна ширина - зменшено на 40px
                 height: 'clamp(150px, 22vh, 193px)', // Адаптивна висота
                 borderRadius: 'clamp(20px, 4vw, 30px)' // Адаптивні заокруглення
               }}
@@ -262,7 +274,7 @@ export default function BrandingPage() {
               className="absolute flex space-x-1"
               style={{
                 left: '50%',
-                top: 'clamp(335px, 52vh, 420px)', // Піднімаю на 50px (було 385px, 56vh, 470px)
+                top: 'calc(50vh + 30px - 90px - 30px - 25px)', // Піднімаю ще на 25 пікселів (загалом 145px)
                 transform: 'translateX(-50%)',
                 gap: 'clamp(2px, 0.5vw, 4px)' // Адаптивний gap
               }}
@@ -291,13 +303,13 @@ export default function BrandingPage() {
             className="absolute bg-black text-white flex items-center shadow-lg hover:bg-gray-800 transition-colors"
             style={{
               left: '50%',
-              top: 'clamp(360px, 55vh, 450px)', // Піднімаю на 50px (було 410px, 59vh, 500px)
+              top: 'calc(55vh + 35px - 100px - 50px)', // Піднімаю ще на 50 пікселів (загалом 150px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               fontSize: 'clamp(16px, 2.5vw, 20.48px)', // Адаптивний розмір шрифту
               fontWeight: 700,
               letterSpacing: '-0.02em',
-              width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
+              width: 'clamp(280px, 88vw, 349px)', // Адаптивна ширина - зменшено на 40px
               height: 'clamp(55px, 8vh, 70px)', // Адаптивна висота
               borderRadius: 'clamp(20px, 4vw, 30px)', // Адаптивні заокруглення
               paddingLeft: 'clamp(35px, 8vw, 52px)', // Адаптивний padding
@@ -340,52 +352,73 @@ export default function BrandingPage() {
             }
           }
           
-          /* Покращення адаптивності для різних розмірів екранів */
+          /* Налаштування для різних розмірів екранів */
           @media (max-width: 380px) {
-            /* Для дуже маленьких екранів */
+            /* Для дуже маленьких екранів - Galaxy S9+, iPhone SE */
             .branding-container {
-              padding: 10px;
-            }
-          }
-          
-          /* Спеціальні стилі для мобільних пристроїв */
-          @media (max-width: 480px) and (max-height: 800px) {
-            .branding-container .absolute {
-              transform: translateY(-30px) translateX(-50%) !important;
-            }
-          }
-          
-          @media (max-width: 400px) and (max-height: 700px) {
-            .branding-container .absolute {
-              transform: translateY(-50px) translateX(-50%) !important;
-            }
-          }
-          
-          @media (max-height: 700px) {
-            /* Для коротких екранів - зменшуємо відступи */
-            .branding-container {
-              padding-top: 5px;
-            }
-          }
-          
-          @media (max-height: 600px) {
-            /* Для дуже коротких екранів - переходимо на flex layout */
-            .branding-container {
-              display: flex !important;
-              flex-direction: column !important;
-              align-items: center !important;
-              justify-content: center !important;
-              gap: 15px !important;
-              padding: 10px !important;
+              padding: 5px;
             }
             
-            .branding-container .absolute {
-              position: relative !important;
-              top: auto !important;
-              left: auto !important;
-              transform: none !important;
-              margin: 5px auto !important;
-              display: block !important;
+            /* Спеціальні налаштування для білого блоку на вузьких екранах */
+            .branding-container > div:first-child {
+              width: clamp(280px, 88vw, 349px) !important; /* ТАКА Ж ШИРИНА ЯК ПРОМО БЛОК - зменшено на 40px */
+              min-width: 260px !important;
+              height: auto !important;
+              min-height: 100px !important;
+              padding: 10px 8px !important;
+            }
+            
+            /* Логотип на вузьких екранах */
+            .branding-container > div:first-child > div:first-child {
+              width: 50px !important;
+              height: 50px !important;
+              left: 8px !important;
+              flex-shrink: 0;
+            }
+            
+            /* Текст на вузьких екранах */
+            .branding-container > div:first-child > div:last-child {
+              left: 65px !important;
+              right: 8px !important;
+              max-width: calc(100% - 73px) !important;
+            }
+            
+            /* Назва локації на вузьких екранах */
+            .branding-container > div:first-child h2 {
+              font-size: 14px !important;
+              line-height: 1.1 !important;
+              margin-bottom: 2px !important;
+              word-wrap: break-word !important;
+              overflow-wrap: break-word !important;
+            }
+            
+            /* Адреса на вузьких екранах */
+            .branding-container > div:first-child p {
+              font-size: 9px !important;
+              line-height: 1.1 !important;
+              word-wrap: break-word !important;
+              overflow-wrap: break-word !important;
+            }
+          }
+          
+          @media (min-width: 381px) and (max-width: 440px) {
+            /* iPhone 12/13/14, Galaxy S21 */
+            .branding-container {
+              padding: 8px;
+            }
+          }
+          
+          @media (max-height: 650px) {
+            /* Для коротких екранів - використовуємо менший відступ */
+            .branding-container {
+              padding-top: 0px;
+            }
+          }
+          
+          /* Спрощені стилі для кращої сумісності */
+          @media (max-height: 600px) {
+            .branding-container {
+              padding-top: 0px;
             }
           }
           
@@ -431,10 +464,71 @@ export default function BrandingPage() {
               padding: 5px;
             }
             
-            .branding-container .absolute {
-              width: calc(100% - 20px) !important;
-              left: 10px !important;
-              transform: none !important;
+            /* Білий блок має таку ж ширину як промо блок */
+            .branding-container > div:first-child {
+              width: clamp(280px, 88vw, 349px) !important;
+              left: 50% !important;
+              transform: translateX(-50%) !important;
+            }
+            
+            /* Промо блок залишається з тією ж шириною */
+            .branding-container > div:nth-child(2) {
+              width: clamp(280px, 88vw, 349px) !important;
+              left: 50% !important;
+              transform: translateX(-50%) !important;
+            }
+          }
+          
+          /* Спеціальні налаштування тільки для Galaxy S9+ (320x658) */
+          @media (max-width: 320px) and (min-height: 650px) and (max-height: 670px) {
+            /* Розширення головного контейнера на всю ширину */
+            .main-container {
+              max-width: none !important;
+              width: 100vw !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            
+            /* Зменшення висоти розмитого фонового блоку на 60px тільки для Galaxy S9+ */
+            .main-container > div:first-child {
+              height: calc(220px + 70px + 50px - 60px) !important;
+              width: 100vw !important;
+              left: 0 !important;
+              right: 0 !important;
+              margin: 0 !important;
+            }
+            
+            /* Розширення фонового зображення на всю ширину екрану без відступів */
+            .main-container > div:first-child > div:first-child {
+              width: 100vw !important;
+              left: 0 !important;
+              right: 0 !important;
+              transform: scale(1.1) !important;
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+            }
+            
+            /* Розширення blur overlay на всю ширину екрану */
+            .main-container > div:first-child > div:last-child {
+              width: 100vw !important;
+              left: 0 !important;
+              right: 0 !important;
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+            }
+            
+            /* Центрування логотипу в білому блоці + зміщення від лівого краю */
+            .branding-container > div:first-child > div:first-child {
+              top: 50% !important;
+              transform: translateY(-50%) !important;
+              left: 33px !important; /* 8px + 25px = 33px від лівого краю */
+            }
+            
+            /* Центрування тексту в білому блоці + зміщення від лівого краю */
+            .branding-container > div:first-child > div:last-child {
+              top: 50% !important;
+              transform: translateY(-50%) !important;
+              left: 90px !important; /* 65px + 25px = 90px від лівого краю */
             }
           }
           
