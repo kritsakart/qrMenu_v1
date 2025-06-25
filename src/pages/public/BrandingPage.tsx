@@ -73,7 +73,7 @@ export default function BrandingPage() {
         
         {/* Cover Photo Section - Responsive height */}
         {location.coverImage && (
-          <div className="relative w-full h-[300px] sm:h-[35vh] md:h-[300px] overflow-hidden">
+          <div className="relative w-full h-[250px] sm:h-[30vh] md:h-[300px] overflow-hidden">
             <div 
               className="absolute inset-0 w-full h-full bg-cover bg-center"
               style={{
@@ -94,7 +94,7 @@ export default function BrandingPage() {
             className="absolute bg-white shadow-lg"
             style={{
               left: '50%',
-              top: 'clamp(140px, 20vh, 172px)', // Адаптивне позиціонування
+              top: 'clamp(80px, 15vh, 120px)', // Піднято вище (було 140px, 20vh, 172px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
@@ -179,7 +179,7 @@ export default function BrandingPage() {
               className="absolute bg-[#9EED86] shadow-lg overflow-hidden touch-pan-x"
               style={{
                 left: '50%',
-                top: 'clamp(310px, 43vh, 365px)', // Адаптивне позиціонування
+                top: 'clamp(250px, 35vh, 285px)', // Піднято вище (було 310px, 43vh, 365px)
                 transform: 'translateX(-50%)',
                 width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
                 height: 'clamp(150px, 22vh, 193px)', // Адаптивна висота
@@ -262,7 +262,7 @@ export default function BrandingPage() {
               className="absolute flex space-x-1"
               style={{
                 left: '50%',
-                top: 'clamp(475px, 67vh, 570px)', // Адаптивне позиціонування
+                top: 'clamp(415px, 59vh, 490px)', // Піднято вище (було 475px, 67vh, 570px)
                 transform: 'translateX(-50%)',
                 gap: 'clamp(2px, 0.5vw, 4px)' // Адаптивний gap
               }}
@@ -291,7 +291,7 @@ export default function BrandingPage() {
             className="absolute bg-black text-white flex items-center shadow-lg hover:bg-gray-800 transition-colors"
             style={{
               left: '50%',
-              top: 'clamp(500px, 70vh, 603px)', // Адаптивне позиціонування
+              top: 'clamp(440px, 62vh, 520px)', // Піднято значно вище (було 500px, 70vh, 603px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               fontSize: 'clamp(16px, 2.5vw, 20.48px)', // Адаптивний розмір шрифту
@@ -348,6 +348,19 @@ export default function BrandingPage() {
             }
           }
           
+          /* Спеціальні стилі для мобільних пристроїв */
+          @media (max-width: 480px) and (max-height: 800px) {
+            .branding-container .absolute {
+              transform: translateY(-30px) translateX(-50%) !important;
+            }
+          }
+          
+          @media (max-width: 400px) and (max-height: 700px) {
+            .branding-container .absolute {
+              transform: translateY(-50px) translateX(-50%) !important;
+            }
+          }
+          
           @media (max-height: 700px) {
             /* Для коротких екранів - зменшуємо відступи */
             .branding-container {
@@ -357,12 +370,21 @@ export default function BrandingPage() {
           
           @media (max-height: 600px) {
             /* Для дуже коротких екранів - переходимо на flex layout */
-            .absolute {
+            .branding-container {
+              display: flex !important;
+              flex-direction: column !important;
+              align-items: center !important;
+              justify-content: center !important;
+              gap: 15px !important;
+              padding: 10px !important;
+            }
+            
+            .branding-container .absolute {
               position: relative !important;
               top: auto !important;
               left: auto !important;
               transform: none !important;
-              margin: 10px auto !important;
+              margin: 5px auto !important;
               display: block !important;
             }
           }
