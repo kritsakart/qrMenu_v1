@@ -94,7 +94,7 @@ export default function BrandingPage() {
             className="absolute bg-white shadow-lg"
             style={{
               left: '50%',
-              top: 'clamp(60px, 12vh, 100px)', // Піднімаю ще вище (було 80px, 15vh, 120px)
+              top: 'clamp(10px, 8vh, 50px)', // Піднімаю на 50px (було 60px, 12vh, 100px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
@@ -179,7 +179,7 @@ export default function BrandingPage() {
               className="absolute bg-[#9EED86] shadow-lg overflow-hidden touch-pan-x"
               style={{
                 left: '50%',
-                top: 'clamp(220px, 32vh, 265px)', // Піднімаю вище (було 250px, 35vh, 285px)
+                top: 'clamp(170px, 28vh, 215px)', // Піднімаю на 50px (було 220px, 32vh, 265px)
                 transform: 'translateX(-50%)',
                 width: 'clamp(320px, 88vw, 389px)', // Адаптивна ширина
                 height: 'clamp(150px, 22vh, 193px)', // Адаптивна висота
@@ -262,7 +262,7 @@ export default function BrandingPage() {
               className="absolute flex space-x-1"
               style={{
                 left: '50%',
-                top: 'clamp(385px, 56vh, 470px)', // Піднімаю вище (було 415px, 59vh, 490px)
+                top: 'clamp(335px, 52vh, 420px)', // Піднімаю на 50px (було 385px, 56vh, 470px)
                 transform: 'translateX(-50%)',
                 gap: 'clamp(2px, 0.5vw, 4px)' // Адаптивний gap
               }}
@@ -291,7 +291,7 @@ export default function BrandingPage() {
             className="absolute bg-black text-white flex items-center shadow-lg hover:bg-gray-800 transition-colors"
             style={{
               left: '50%',
-              top: 'clamp(410px, 59vh, 500px)', // Піднімаю ще вище (було 440px, 62vh, 520px)
+              top: 'clamp(360px, 55vh, 450px)', // Піднімаю на 50px (було 410px, 59vh, 500px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               fontSize: 'clamp(16px, 2.5vw, 20.48px)', // Адаптивний розмір шрифту
