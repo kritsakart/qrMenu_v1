@@ -73,7 +73,7 @@ export default function BrandingPage() {
         
         {/* Cover Photo Section - Responsive height */}
         {location.coverImage && (
-          <div className="relative w-full overflow-hidden" style={{ height: 'calc(220px + 70px + 50px)' }}>
+          <div className="relative w-full overflow-hidden" style={{ height: 'calc(220px + 70px + 50px - 50px)' }}>
             <div 
               className="absolute w-full bg-cover bg-center"
               style={{
@@ -103,7 +103,7 @@ export default function BrandingPage() {
             className="absolute bg-white shadow-lg"
             style={{
               left: '50%',
-              top: 'calc(2vh + 10px - 70px - 20px)', // Піднімаю ще на 20 пікселів (загалом 90px)
+              top: 'calc(2vh + 10px - 70px - 20px)', // Повертаю до попереднього стану (загалом 90px)
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               width: 'clamp(280px, 88vw, 349px)', // Адаптивна ширина - зменшено на 40px
@@ -115,11 +115,11 @@ export default function BrandingPage() {
             <div 
               className="absolute bg-[#C80505] rounded-full flex items-center justify-center overflow-hidden"
               style={{
-                left: 'clamp(15px, 4vw, 25px)', // Зменшено відступ зліва для вузьких екранів
+                left: 'clamp(30px, 4vw, 40px)', // Збільшено відступ зліва на 15px: було 15px→30px, було 25px→40px
                 top: '50%',
                 transform: 'translateY(-50%)',
-                width: 'clamp(60px, 10vw, 85px)', // Зменшено розмір логотипу
-                height: 'clamp(60px, 10vw, 85px)'
+                width: 'clamp(81px, 13.5vw, 115px)', // Збільшено розмір логотипу на 35%: 60px*1.35=81px, 10vw*1.35=13.5vw, 85px*1.35=115px
+                height: 'clamp(81px, 13.5vw, 115px)'
               }}
             >
               {location.logoImage ? (
@@ -135,7 +135,7 @@ export default function BrandingPage() {
                     fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                     fontWeight: 700,
                     letterSpacing: '-0.02em',
-                    fontSize: 'clamp(12px, 2vw, 16px)' // Зменшено розмір шрифту логотипу
+                    fontSize: 'clamp(16px, 2.7vw, 22px)' // Збільшено розмір шрифту логотипу на 35%: 12px*1.35=16px, 2vw*1.35=2.7vw, 16px*1.35=22px
                   }}
                 >
                   LOGO
@@ -147,11 +147,11 @@ export default function BrandingPage() {
             <div 
               className="absolute"
               style={{
-                left: 'clamp(85px, 16vw, 120px)', // Зменшено відступ зліва для тексту
+                left: 'clamp(130px, 20vw, 170px)', // Збільшено відступ під новий розмір логотипу: 100px+30px=130px, 16vw+4vw=20vw, 135px+35px=170px
                 top: '50%',
                 transform: 'translateY(-50%)',
                 right: 'clamp(10px, 3vw, 20px)', // Зменшено відступ справа
-                maxWidth: 'calc(100% - clamp(95px, 19vw, 140px))' // Додано максимальну ширину
+                maxWidth: 'calc(100% - clamp(140px, 23vw, 190px))' // Оновлено максимальну ширину відповідно до збільшеного логотипу: 110px+30px=140px, 19vw+4vw=23vw, 155px+35px=190px
               }}
             >
               {/* Location Name - Responsive */}
@@ -161,7 +161,7 @@ export default function BrandingPage() {
                   fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                   fontWeight: 700,
                   letterSpacing: '-0.02em',
-                  fontSize: 'clamp(16px, 3.5vw, 28px)', // Зменшено розмір шрифту назви
+                  fontSize: 'clamp(21px, 3.5vw, 33px)', // Збільшено розмір шрифту назви ще на 2px: було 19px→21px, було 31px→33px
                   marginBottom: 'clamp(2px, 0.5vh, 4px)', // Збільшено відступ
                   lineHeight: '1.1' // Зменшено висоту рядка
                 }}
@@ -176,7 +176,7 @@ export default function BrandingPage() {
                   fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                   fontWeight: 400,
                   letterSpacing: '-0.01em',
-                  fontSize: 'clamp(10px, 1.8vw, 13px)', // Зменшено розмір шрифту адреси
+                  fontSize: 'clamp(15px, 1.8vw, 18px)', // Збільшено розмір шрифту адреси ще на 2px: було 13px→15px, було 16px→18px
                   lineHeight: '1.2' // Зменшено висоту рядка
                 }}
               >
@@ -191,7 +191,7 @@ export default function BrandingPage() {
               className="absolute bg-[#9EED86] shadow-lg overflow-hidden touch-pan-x"
               style={{
                 left: '50%',
-                top: 'calc(25vh + 20px - 70px - 20px - 30px - 15px)', // Піднімаю ще на 15 пікселів (загалом 135px)
+                top: 'calc(25vh + 20px - 70px - 20px - 30px - 15px)', // Повертаю до попереднього стану (загалом 135px)
                 transform: 'translateX(-50%)',
                 width: 'clamp(280px, 88vw, 349px)', // Адаптивна ширина - зменшено на 40px
                 height: 'clamp(150px, 22vh, 193px)', // Адаптивна висота
@@ -274,7 +274,7 @@ export default function BrandingPage() {
               className="absolute flex space-x-1"
               style={{
                 left: '50%',
-                top: 'calc(50vh + 30px - 90px - 30px - 25px)', // Піднімаю ще на 25 пікселів (загалом 145px)
+                top: 'calc(50vh + 30px - 90px - 30px - 25px)', // Повертаю до попереднього стану (загалом 145px)
                 transform: 'translateX(-50%)',
                 gap: 'clamp(2px, 0.5vw, 4px)' // Адаптивний gap
               }}
@@ -303,7 +303,7 @@ export default function BrandingPage() {
             className="absolute bg-black text-white flex items-center shadow-lg hover:bg-gray-800 transition-colors"
             style={{
               left: '50%',
-              top: 'calc(55vh + 35px - 100px - 50px)', // Піднімаю ще на 50 пікселів (загалом 150px)
+              top: 'calc(55vh + 35px - 100px - 55px)', // Піднімаю на 55px (35px + 20px) для всіх екранів крім Samsung S21 FE та Galaxy S9+
               transform: 'translateX(-50%)',
               fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
               fontSize: 'clamp(16px, 2.5vw, 20.48px)', // Адаптивний розмір шрифту
@@ -521,14 +521,34 @@ export default function BrandingPage() {
             .branding-container > div:first-child > div:first-child {
               top: 50% !important;
               transform: translateY(-50%) !important;
-              left: 33px !important; /* 8px + 25px = 33px від лівого краю */
+              left: 28px !important; /* 33px - 5px = 28px від лівого краю */
             }
             
             /* Центрування тексту в білому блоці + зміщення від лівого краю */
             .branding-container > div:first-child > div:last-child {
               top: 50% !important;
               transform: translateY(-50%) !important;
-              left: 90px !important; /* 65px + 25px = 90px від лівого краю */
+              left: 100px !important; /* 90px + 10px = 100px від лівого краю */
+            }
+            
+            /* Підняття кнопки меню на 65 пікселів тільки для Galaxy S9+ */
+            .branding-container button:last-child {
+              top: calc(55vh + 35px - 100px - 65px) !important;
+            }
+            
+            /* Зменшення логотипу на 25% від поточного розміру тільки для Galaxy S9+ */
+            .branding-container > div:first-child > div:first-child {
+              width: calc(81px * 0.75) !important; /* Поточний розмір 81px * 0.75 = 61px */
+              height: calc(81px * 0.75) !important; /* Поточний розмір 81px * 0.75 = 61px */
+            }
+            
+            /* Збільшення шрифтів на 2 пункти тільки для Galaxy S9+ */
+            .branding-container > div:first-child h2 {
+              font-size: calc(16px + 2px) !important; /* Оригінальний базовий розмір 16px + 2px = 18px */
+            }
+            
+            .branding-container > div:first-child p {
+              font-size: calc(10px + 2px) !important; /* Оригінальний базовий розмір 10px + 2px = 12px */
             }
           }
           
@@ -546,6 +566,40 @@ export default function BrandingPage() {
               font-feature-settings: "liga" on, "kern" on;
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
+            }
+          }
+          
+          /* Спеціальні налаштування тільки для Samsung S21 FE (360x800) */
+          @media (min-width: 350px) and (max-width: 370px) and (min-height: 790px) and (max-height: 810px) {
+            /* Збільшення висоти білого блоку на 10 пікселів */
+            .branding-container > div:first-child {
+              height: calc(clamp(120px, 15vh, 135px) + 10px) !important; /* Зменшуємо з 25px до 10px (зменшення на 15px) */
+            }
+            
+            /* Зменшення логотипу на 25% від поточного розміру */
+            .branding-container > div:first-child > div:first-child {
+              width: calc(105px * 0.75) !important; /* 105px * 0.75 = 79px */
+              height: calc(105px * 0.75) !important; /* 105px * 0.75 = 79px */
+              left: calc(45px - 10px) !important; /* Зменшуємо відстань від лівого краю ще на 10px: 45px - 10px = 35px */
+            }
+            
+            /* Встановлення відстані між логотипом та текстом 15 пікселів */
+            .branding-container > div:first-child > div:last-child {
+              left: calc(35px + 79px + 15px) !important; /* Позиція логотипу + ширина логотипу + 15px відстань = 129px */
+            }
+            
+            /* Зменшення шрифтів на 1 пункт */
+            .branding-container > div:first-child h2 {
+              font-size: calc(24px - 1px) !important; /* Поточний розмір 24px - 1px = 23px */
+            }
+            
+            .branding-container > div:first-child p {
+              font-size: calc(18px - 1px) !important; /* Поточний розмір 18px - 1px = 17px */
+            }
+            
+            /* Підняття кнопки меню на 55 пікселів тільки для Samsung S21 FE */
+            .branding-container button:last-child {
+              top: calc(55vh + 35px - 100px - 55px) !important; /* Піднімаємо на 55px (40px + 15px) */
             }
           }
         `}</style>
