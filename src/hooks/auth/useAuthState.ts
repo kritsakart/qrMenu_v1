@@ -14,6 +14,7 @@ export const useAuthState = () => {
   useEffect(() => {
     const storedUser = getStoredUser();
     if (storedUser) {
+      console.log("📱 Restored user from localStorage:", storedUser);
       setUser(storedUser);
     }
     setIsLoading(false);
@@ -22,6 +23,10 @@ export const useAuthState = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("✨ Supabase auth state changed in useAuthState:", event, session);
+        
+        // Отримуємо поточного користувача з localStorage
+        const currentStoredUser = getStoredUser();
+        
         if (session) {
           // Якщо є сесія, намагаємося отримати профіль користувача з таблиці cafe_owners
           const { data: profileData, error: profileError } = await supabase
@@ -32,8 +37,13 @@ export const useAuthState = () => {
 
           if (profileError && profileError.code !== 'PGRST116') { // PGRST116 означає "Row not found"
             console.error("❌ Error fetching user profile from cafe_owners:", profileError);
-            clearStoredUser();
-            setUser(null);
+            // Не очищаємо localStorage користувача, можливо це mock user
+            if (currentStoredUser && currentStoredUser.id !== session.user.id) {
+              // Тільки якщо це інший користувач
+              console.log("🔄 Different user session detected, updating...");
+              clearStoredUser();
+              setUser(null);
+            }
             setIsLoading(false);
             return;
           }
@@ -64,10 +74,25 @@ export const useAuthState = () => {
             setIsLoading(false);
           }
         } else {
-          // Сесія відсутня, очищаємо дані користувача
-          console.log("🔴 Supabase session cleared in useAuthState. Clearing user.");
-          clearStoredUser();
-          setUser(null);
+          // Сесія відсутня - перевіряємо чи є збережений користувач
+          if (currentStoredUser) {
+            console.log("🔍 No Supabase session but found stored user:", currentStoredUser);
+            
+            // Якщо це mock user або локальний користувач (не Supabase), залишаємо його
+            if (currentStoredUser.id.startsWith('admin-') || 
+                currentStoredUser.id.startsWith('cafe-') ||
+                currentStoredUser.email?.includes('@mock.com')) {
+              console.log("✅ Keeping mock/local user logged in");
+              setUser(currentStoredUser);
+              setIsLoading(false);
+              return;
+            }
+            
+            // Якщо це був справжній Supabase користувач, очищаємо його
+            console.log("🔴 Supabase session cleared for real user. Clearing user.");
+            clearStoredUser();
+            setUser(null);
+          }
           setIsLoading(false);
         }
       }

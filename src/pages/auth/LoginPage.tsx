@@ -221,6 +221,7 @@ const LoginPage = () => {
             </TabsContent>
           </Tabs>
           
+          {/* Закоментовано кнопку показу бази даних
           <div className="mt-4">
             <button
               onClick={handleTestDatabaseConnection}
@@ -230,6 +231,7 @@ const LoginPage = () => {
               {isSubmitting ? "Checking connection..." : "Test Database Connection"}
             </button>
           </div>
+          */}
           
           <LoginDebugInfo loginAttempt={loginAttempt} />
         </CardContent>
