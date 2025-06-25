@@ -40,3 +40,86 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Адаптивні стилі для сторінки брендингу */
+.branding-page {
+  /* Fallback стилі для старих браузерів */
+  --main-width: 389px;
+  --main-height: 164px;
+  --border-radius: 30px;
+  --logo-size: 100px;
+  --font-size-large: 31px;
+  --font-size-medium: 20px;
+  --font-size-small: 15px;
+}
+
+/* Адаптивність для маленьких екранів */
+@media (max-width: 380px) {
+  .branding-page {
+    --main-width: 320px;
+    --main-height: 140px;
+    --border-radius: 20px;
+    --logo-size: 70px;
+    --font-size-large: 20px;
+    --font-size-medium: 14px;
+    --font-size-small: 12px;
+  }
+}
+
+/* Адаптивність для середніх екранів */
+@media (min-width: 381px) and (max-width: 440px) {
+  .branding-page {
+    --main-width: 88vw;
+    --main-height: 19vh;
+    --border-radius: 4vw;
+    --logo-size: 12vw;
+    --font-size-large: 4vw;
+    --font-size-medium: 2.5vw;
+    --font-size-small: 2vw;
+  }
+}
+
+/* Адаптивність для великих екранів */
+@media (min-width: 768px) {
+  .branding-page {
+    --main-width: 480px;
+    --main-height: 180px;
+    --border-radius: 35px;
+    --logo-size: 110px;
+    --font-size-large: 35px;
+    --font-size-medium: 22px;
+    --font-size-small: 16px;
+  }
+}
+
+/* Стилі для горизонтальної орієнтації */
+@media (orientation: landscape) and (max-height: 500px) {
+  .branding-page .branding-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding: 20px;
+    height: auto;
+  }
+  
+  .branding-page .branding-container > div {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin: 10px !important;
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+  }
+}
+
+/* Покращення шрифтів для Retina дисплеїв */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+  .branding-page {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "liga" on, "kern" on;
+  }
+}
