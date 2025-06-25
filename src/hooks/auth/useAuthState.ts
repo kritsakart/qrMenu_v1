@@ -27,6 +27,19 @@ export const useAuthState = () => {
         // Отримуємо поточного користувача з localStorage
         const currentStoredUser = getStoredUser();
         
+        // Якщо є збережений mock користувач, завжди зберігаємо його незалежно від Supabase сесії
+        if (currentStoredUser && (
+          currentStoredUser.id.startsWith('admin-') || 
+          currentStoredUser.id.startsWith('cafe-') ||
+          currentStoredUser.email?.includes('@mock.com') ||
+          currentStoredUser.username?.includes('mock')
+        )) {
+          console.log("✅ Preserving mock/local user on session change:", currentStoredUser);
+          setUser(currentStoredUser);
+          setIsLoading(false);
+          return;
+        }
+        
         if (session) {
           // Якщо є сесія, намагаємося отримати профіль користувача з таблиці cafe_owners
           const { data: profileData, error: profileError } = await supabase
@@ -81,7 +94,8 @@ export const useAuthState = () => {
             // Якщо це mock user або локальний користувач (не Supabase), залишаємо його
             if (currentStoredUser.id.startsWith('admin-') || 
                 currentStoredUser.id.startsWith('cafe-') ||
-                currentStoredUser.email?.includes('@mock.com')) {
+                currentStoredUser.email?.includes('@mock.com') ||
+                currentStoredUser.username?.includes('mock')) {
               console.log("✅ Keeping mock/local user logged in");
               setUser(currentStoredUser);
               setIsLoading(false);

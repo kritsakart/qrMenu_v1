@@ -1,19 +1,19 @@
 import { AppUser } from "@/types/auth";
 
-const USER_STORAGE_KEY = "supabase_user";
+const USER_STORAGE_KEY = "food-list-user";
 
 /**
- * Function to validate user data structure
+ * Validates if the user data has all required fields
  */
-const isValidUserData = (data: any): data is AppUser => {
+const isValidUserData = (userData: any): userData is AppUser => {
   return (
-    data &&
-    typeof data === 'object' &&
-    typeof data.id === 'string' &&
-    typeof data.email === 'string' &&
-    typeof data.username === 'string' &&
-    ['super_admin', 'cafe_owner', 'public'].includes(data.role) &&
-    (data.cafeId === undefined || typeof data.cafeId === 'string')
+    userData &&
+    typeof userData === "object" &&
+    typeof userData.id === "string" &&
+    typeof userData.username === "string" &&
+    typeof userData.role === "string" &&
+    (userData.email === undefined || typeof userData.email === "string") &&
+    (userData.cafeId === undefined || typeof userData.cafeId === "string")
   );
 };
 
@@ -24,6 +24,7 @@ export const getStoredUser = (): AppUser | null => {
   try {
     const userString = localStorage.getItem(USER_STORAGE_KEY);
     if (!userString) {
+      console.log("🔍 No user data found in localStorage");
       return null;
     }
     
@@ -31,12 +32,24 @@ export const getStoredUser = (): AppUser | null => {
     
     // Валідуємо структуру даних
     if (!isValidUserData(userData)) {
-      console.warn("⚠️ Invalid user data found in localStorage, clearing it");
+      console.warn("⚠️ Invalid user data found in localStorage, clearing it:", userData);
       clearStoredUser();
       return null;
     }
     
-    console.log("✅ Valid user data loaded from localStorage:", userData);
+    // Додаткова перевірка для mock користувачів
+    const isMockUser = userData.id.startsWith('admin-') || 
+                      userData.id.startsWith('cafe-') ||
+                      userData.email?.includes('@mock.com') ||
+                      userData.username?.includes('mock');
+    
+    console.log("✅ Valid user data loaded from localStorage:", {
+      id: userData.id,
+      username: userData.username,
+      role: userData.role,
+      isMockUser: isMockUser
+    });
+    
     return userData;
   } catch (error) {
     console.error("❌ Error parsing stored user data:", error);
@@ -55,8 +68,18 @@ export const setStoredUser = (user: AppUser) => {
       return;
     }
     
+    const isMockUser = user.id.startsWith('admin-') || 
+                      user.id.startsWith('cafe-') ||
+                      user.email?.includes('@mock.com') ||
+                      user.username?.includes('mock');
+    
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    console.log("💾 User data saved to localStorage:", user);
+    console.log("💾 User data saved to localStorage:", {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      isMockUser: isMockUser
+    });
   } catch (error) {
     console.error("❌ Error storing user data:", error);
   }
