@@ -24,15 +24,16 @@ export const getStoredUser = (): AppUser | null => {
   try {
     const userString = localStorage.getItem(USER_STORAGE_KEY);
     if (!userString) {
-      console.log("🔍 No user data found in localStorage");
+      console.log("🔍 getStoredUser: No user data found in localStorage");
       return null;
     }
     
+    console.log("🔍 getStoredUser: Raw data from localStorage:", userString);
     const userData = JSON.parse(userString);
     
     // Валідуємо структуру даних
     if (!isValidUserData(userData)) {
-      console.warn("⚠️ Invalid user data found in localStorage, clearing it:", userData);
+      console.warn("⚠️ getStoredUser: Invalid user data found, clearing:", userData);
       clearStoredUser();
       return null;
     }
@@ -43,16 +44,17 @@ export const getStoredUser = (): AppUser | null => {
                       userData.email?.includes('@mock.com') ||
                       userData.username?.includes('mock');
     
-    console.log("✅ Valid user data loaded from localStorage:", {
+    console.log("✅ getStoredUser: Valid user data loaded:", {
       id: userData.id,
       username: userData.username,
       role: userData.role,
-      isMockUser: isMockUser
+      isMockUser: isMockUser,
+      timestamp: new Date().toISOString()
     });
     
     return userData;
   } catch (error) {
-    console.error("❌ Error parsing stored user data:", error);
+    console.error("❌ getStoredUser: Error parsing stored user data:", error);
     clearStoredUser(); // Очищаємо пошкоджені дані
     return null;
   }
@@ -64,7 +66,7 @@ export const getStoredUser = (): AppUser | null => {
 export const setStoredUser = (user: AppUser) => {
   try {
     if (!isValidUserData(user)) {
-      console.error("❌ Attempting to store invalid user data:", user);
+      console.error("❌ setStoredUser: Attempting to store invalid user data:", user);
       return;
     }
     
@@ -73,15 +75,27 @@ export const setStoredUser = (user: AppUser) => {
                       user.email?.includes('@mock.com') ||
                       user.username?.includes('mock');
     
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    console.log("💾 User data saved to localStorage:", {
+    const userString = JSON.stringify(user);
+    localStorage.setItem(USER_STORAGE_KEY, userString);
+    
+    console.log("💾 setStoredUser: User data saved to localStorage:", {
       id: user.id,
       username: user.username,
       role: user.role,
-      isMockUser: isMockUser
+      isMockUser: isMockUser,
+      dataSize: userString.length,
+      timestamp: new Date().toISOString()
     });
+    
+    // Перевіряємо, що дані справді збереглися
+    const verification = localStorage.getItem(USER_STORAGE_KEY);
+    if (verification === userString) {
+      console.log("✅ setStoredUser: Verification passed - data successfully stored");
+    } else {
+      console.error("❌ setStoredUser: Verification failed - data not stored properly");
+    }
   } catch (error) {
-    console.error("❌ Error storing user data:", error);
+    console.error("❌ setStoredUser: Error storing user data:", error);
   }
 };
 
@@ -90,9 +104,23 @@ export const setStoredUser = (user: AppUser) => {
  */
 export const clearStoredUser = () => {
   try {
+    const existingData = localStorage.getItem(USER_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
-    console.log("🗑️ User data cleared from localStorage");
+    
+    console.log("🗑️ clearStoredUser: User data cleared from localStorage", {
+      hadData: !!existingData,
+      clearedData: existingData ? JSON.parse(existingData) : null,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Перевіряємо, що дані справді видалилися
+    const verification = localStorage.getItem(USER_STORAGE_KEY);
+    if (verification === null) {
+      console.log("✅ clearStoredUser: Verification passed - data successfully cleared");
+    } else {
+      console.error("❌ clearStoredUser: Verification failed - data still exists:", verification);
+    }
   } catch (error) {
-    console.error("❌ Error clearing user data:", error);
+    console.error("❌ clearStoredUser: Error clearing user data:", error);
   }
 };
