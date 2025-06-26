@@ -142,8 +142,31 @@ export const useAuthState = () => {
               return;
             }
             
-            // Якщо це був справжній Supabase користувач, очищаємо його
-            console.log("🔴 Real user session lost, clearing user");
+            // Якщо це був справжній Supabase користувач, спробуємо відновити сесію
+            console.log("🔴 Real user session lost, attempting recovery for:", currentStoredUser.id);
+            
+            // Спробуємо знайти користувача в базі даних для відновлення
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('cafe_owners')
+                .select('id, email, name, username, status')
+                .eq('id', currentStoredUser.id)
+                .single();
+
+              if (profileData && profileData.status === 'active') {
+                console.log("✅ User found in database, preserving user data:", profileData.id);
+                // Користувач існує в базі, залишаємо його
+                setUser(currentStoredUser);
+                setIsLoading(false);
+                return;
+              } else {
+                console.log("❌ User not found or inactive in database, clearing");
+              }
+            } catch (error) {
+              console.error("❌ Error checking user in database:", error);
+            }
+            
+            // Якщо користувач не знайдений або неактивний, очищаємо
             clearStoredUser();
             setUser(null);
           } else {
