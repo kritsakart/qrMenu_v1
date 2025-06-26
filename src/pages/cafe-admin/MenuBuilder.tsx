@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuthState } from "@/hooks/auth/useAuthState";
 import { useFetchMenuCategoriesNew } from "@/hooks/menu-categories/useFetchMenuCategoriesNew";
@@ -6,12 +6,96 @@ import { useFetchMenuItems } from "@/hooks/menu/useFetchMenuItems";
 import { useAddMenuCategory } from "@/hooks/menu-categories/useAddMenuCategory";
 import { useUpdateMenuCategory } from "@/hooks/menu-categories/useUpdateMenuCategory";
 import { useDeleteMenuCategory } from "@/hooks/menu-categories/useDeleteMenuCategory";
+import { useUpdateMenuCategoryOrder } from "@/hooks/menu-categories/useUpdateMenuCategoryOrder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Trash, Plus } from "lucide-react";
+import { Edit, Trash, Plus, GripVertical } from "lucide-react";
+
+// DnD Kit imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Category Item Component
+const SortableCategoryItem = ({ category, onEdit, onDelete }: {
+  category: any;
+  onEdit: (category: any) => void;
+  onDelete: (category: any) => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center justify-between p-3 border rounded-lg bg-white ${
+        isDragging ? 'shadow-lg' : ''
+      }`}
+    >
+      <div className="flex items-center space-x-3">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab hover:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+        >
+          <GripVertical className="h-4 w-4 text-gray-400" />
+        </div>
+        <div>
+          <h3 className="font-medium">{category.name}</h3>
+          <p className="text-sm text-gray-500">Order: {category.order || 'No order'}</p>
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => onEdit(category)}
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button 
+          size="sm" 
+          variant="destructive"
+          onClick={() => onDelete(category)}
+        >
+          <Trash className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const MenuBuilder = () => {
   console.log('[DEBUG] MenuBuilder: Component rendering...');
@@ -26,6 +110,11 @@ const MenuBuilder = () => {
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [categoryName, setCategoryName] = useState("");
+
+  // Local state for optimistic updates
+  const [localCategories, setLocalCategories] = useState<any[]>([]);
+  const [isReordering, setIsReordering] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Data fetching
   const shouldFetch = Boolean(cafeId);
@@ -46,57 +135,172 @@ const MenuBuilder = () => {
   const { addCategory } = useAddMenuCategory();
   const { updateCategory } = useUpdateMenuCategory();
   const { deleteCategory } = useDeleteMenuCategory();
+  const { reorderCategories } = useUpdateMenuCategoryOrder();
+
+  // Drag and Drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Initialize local categories only once from server data
+  useEffect(() => {
+    if (categories && categories.length > 0 && !hasInitialized) {
+      console.log('[DEBUG] Initial load - setting categories from server:', categories);
+      setLocalCategories(categories);
+      setHasInitialized(true);
+    }
+  }, [categories, hasInitialized]);
 
   console.log('[DEBUG] MenuBuilder: fetch results =', {
     categoriesCount: categories?.length || 0,
+    localCategoriesCount: localCategories?.length || 0,
     menuItemsCount: menuItems?.length || 0,
     categoriesLoading,
     itemsLoading,
     categoriesError,
-    itemsError
+    itemsError,
+    isReordering,
+    hasInitialized
   });
 
-  // Category CRUD handlers
+  // Sort categories by order
+  const sortedCategories = localCategories ? [...localCategories].sort((a, b) => {
+    const orderA = a.order || 999;
+    const orderB = b.order || 999;
+    return orderA - orderB;
+  }) : [];
+
+  // Drag and Drop handler - PURE optimistic updates
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = sortedCategories.findIndex((item) => item.id === active.id);
+      const newIndex = sortedCategories.findIndex((item) => item.id === over?.id);
+
+      // Optimistically update the local state immediately
+      const reorderedCategories = arrayMove(sortedCategories, oldIndex, newIndex);
+      
+      // Update order values for proper sorting
+      const categoriesWithNewOrder = reorderedCategories.map((category, index) => ({
+        ...category,
+        order: index + 1
+      }));
+      
+      console.log('[DEBUG] Drag end - OPTIMISTIC UPDATE with new order values:', {
+        oldIndex,
+        newIndex,
+        oldOrder: sortedCategories.map(c => ({ id: c.id, name: c.name, order: c.order })),
+        newOrder: categoriesWithNewOrder.map(c => ({ id: c.id, name: c.name, order: c.order }))
+      });
+
+      // Update local state immediately for smooth UX - NO SERVER SYNC
+      setLocalCategories(categoriesWithNewOrder);
+      setIsReordering(true);
+
+      // Update the order in the database silently in background
+      try {
+        await reorderCategories(categoriesWithNewOrder);
+        console.log('[DEBUG] Database update successful (background)');
+      } catch (error) {
+        console.error('[DEBUG] Database update failed, but keeping optimistic state');
+      } finally {
+        // Always keep the optimistic state regardless of server response
+        setIsReordering(false);
+      }
+    }
+  };
+
+  // Category CRUD handlers - optimistic updates
   const handleAddCategory = async () => {
     if (!categoryName.trim() || !cafeId) return;
 
+    const tempId = `temp-${Date.now()}`;
+    const newCategory = {
+      id: tempId,
+      name: categoryName.trim(),
+      cafe_id: cafeId,
+      order: localCategories.length + 1
+    };
+
     try {
-      await addCategory(cafeId, categoryName.trim());
+      // Optimistically add to local state
+      setLocalCategories(prev => [...prev, newCategory]);
       setCategoryName("");
       setIsAddCategoryOpen(false);
-      // Refresh page to see updates
-      window.location.reload();
+
+      // Try to save to server
+      await addCategory(cafeId, categoryName.trim());
+      console.log('[DEBUG] Category added successfully');
+      
+      // For new items, we might want to refresh after some time to get the real ID
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
     } catch (error) {
       console.error('Error adding category:', error);
+      // Remove from local state if server failed
+      setLocalCategories(prev => prev.filter(cat => cat.id !== tempId));
     }
   };
 
   const handleEditCategory = async () => {
     if (!categoryName.trim() || !selectedCategory) return;
 
+    const oldName = selectedCategory.name;
+
     try {
-      await updateCategory(selectedCategory.id, categoryName.trim());
+      // Optimistically update local state
+      setLocalCategories(prev => 
+        prev.map(cat => 
+          cat.id === selectedCategory.id 
+            ? { ...cat, name: categoryName.trim() }
+            : cat
+        )
+      );
+      
       setCategoryName("");
       setSelectedCategory(null);
       setIsEditCategoryOpen(false);
-      // Refresh page to see updates
-      window.location.reload();
+
+      // Try to save to server
+      await updateCategory(selectedCategory.id, categoryName.trim());
+      console.log('[DEBUG] Category updated successfully');
     } catch (error) {
       console.error('Error updating category:', error);
+      // Revert local state if server failed
+      setLocalCategories(prev => 
+        prev.map(cat => 
+          cat.id === selectedCategory.id 
+            ? { ...cat, name: oldName }
+            : cat
+        )
+      );
     }
   };
 
   const handleDeleteCategory = async () => {
     if (!selectedCategory) return;
 
+    const categoryToDelete = selectedCategory;
+
     try {
-      await deleteCategory(selectedCategory.id);
+      // Optimistically remove from local state
+      setLocalCategories(prev => prev.filter(cat => cat.id !== selectedCategory.id));
       setSelectedCategory(null);
       setIsDeleteCategoryOpen(false);
-      // Refresh page to see updates
-      window.location.reload();
+
+      // Try to delete from server
+      await deleteCategory(selectedCategory.id);
+      console.log('[DEBUG] Category deleted successfully');
     } catch (error) {
       console.error('Error deleting category:', error);
+      // Restore local state if server failed
+      setLocalCategories(prev => [...prev, categoryToDelete]);
     }
   };
 
@@ -121,6 +325,9 @@ const MenuBuilder = () => {
             <p><strong>User ID:</strong> {cafeId || 'Not found'}</p>
             <p><strong>Username:</strong> {user?.username || 'Not found'}</p>
             <p><strong>Status:</strong> {user ? 'Authenticated' : 'Not authenticated'}</p>
+            <p><strong>Is Reordering:</strong> {isReordering ? 'Yes' : 'No'}</p>
+            <p><strong>Has Initialized:</strong> {hasInitialized ? 'Yes' : 'No'}</p>
+            <p><strong>Using Local State:</strong> Yes (No server sync on drag)</p>
           </div>
         </div>
 
@@ -131,11 +338,12 @@ const MenuBuilder = () => {
           </div>
         ) : (
           <>
-            {/* Categories Section */}
+            {/* Categories Section with Drag & Drop */}
             <div className="bg-white p-6 rounded-lg border">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">
-                  Categories {categoriesLoading ? '(Loading...)' : `(${categories?.length || 0})`}
+                  Categories {categoriesLoading && !hasInitialized ? '(Loading...)' : `(${localCategories?.length || 0})`}
+                  {isReordering && <span className="text-blue-600 ml-2">(Updating...)</span>}
                 </h2>
                 <Button onClick={() => setIsAddCategoryOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -147,41 +355,36 @@ const MenuBuilder = () => {
                 <div className="text-red-600 p-4 bg-red-50 rounded">
                   <strong>Error:</strong> {categoriesError}
                 </div>
-              ) : categoriesLoading ? (
+              ) : (categoriesLoading && !hasInitialized) ? (
                 <div className="space-y-2">
                   <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                   <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                   <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                 </div>
-              ) : categories?.length === 0 ? (
+              ) : sortedCategories?.length === 0 ? (
                 <p className="text-gray-500">No categories found. Create your first category!</p>
               ) : (
-                <div className="space-y-2">
-                  {categories?.map(category => (
-                    <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h3 className="font-medium">{category.name}</h3>
-                        <p className="text-sm text-gray-500">ID: {category.id}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => openEditDialog(category)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => openDeleteDialog(category)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
+                <DndContext 
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext 
+                    items={sortedCategories.map(c => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {sortedCategories.map(category => (
+                        <SortableCategoryItem
+                          key={category.id}
+                          category={category}
+                          onEdit={openEditDialog}
+                          onDelete={openDeleteDialog}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
 

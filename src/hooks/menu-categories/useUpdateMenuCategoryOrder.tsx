@@ -1,108 +1,96 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-interface UpdateCategoryOrderPayload {
-  categoryId: string;
-  newOrder: number;
-  locationId: string;
-}
-
-const updateMenuCategoryOrder = async ({ categoryId, newOrder, locationId }: UpdateCategoryOrderPayload) => {
-  console.log('🔄 Updating menu category order:', { categoryId, newOrder, locationId });
-  
-  try {
-    const { data, error } = await supabase
-      .from('menu_categories')
-      .update({ order: newOrder })
-      .eq('id', categoryId)
-      .select();
-
-    if (error) {
-      console.error('❌ Error updating menu category order:', error);
-      throw error;
-    }
-
-    console.log('✅ Menu category order updated:', data);
-    return data;
-  } catch (err) {
-    console.error('❌ Error in updateMenuCategoryOrder:', err);
-    throw err;
-  }
-};
+import { useToast } from '@/hooks/use-toast';
 
 export const useUpdateMenuCategoryOrder = () => {
-  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  return useMutation({
-    mutationFn: updateMenuCategoryOrder,
-    onSuccess: (data, variables) => {
-      // Invalidate and refetch menu categories for this location
-      queryClient.invalidateQueries({ 
-        queryKey: ['menuCategories', variables.locationId] 
-      });
-      
-      toast.success('Порядок категорій оновлено');
-    },
-    onError: (error: any) => {
-      console.error('❌ Error in useUpdateMenuCategoryOrder:', error);
-      toast.error('Помилка при оновленні порядку категорій');
-    },
-  });
-};
-
-export const useUpdateMultipleMenuCategoriesOrder = () => {
-  const queryClient = useQueryClient();
-
-  const updateMultipleCategoriesOrder = async (updates: UpdateCategoryOrderPayload[]) => {
-    console.log('🔄 Updating multiple menu categories order:', updates);
-    
+  const updateCategoryOrder = async (categoryId: string, newOrder: number) => {
+    setLoading(true);
     try {
-      const promises = updates.map(async ({ categoryId, newOrder }) => {
-        try {
-          const result = await supabase
-            .from('menu_categories')
-            .update({ order: newOrder })
-            .eq('id', categoryId);
-          
-          if (result.error) {
-            console.log(`⚠️ Could not update category ${categoryId}:`, result.error.message);
-          }
-          
-          return result;
-        } catch (err) {
-          console.log(`⚠️ Error updating category ${categoryId}:`, err);
-          return { error: err };
-        }
-      });
+      console.log(`[DEBUG] Updating category ${categoryId} to order ${newOrder}`);
 
-      const results = await Promise.all(promises);
-      
-      console.log('✅ All menu categories order update attempts completed');
-      return results;
-    } catch (err) {
-      console.log('⚠️ Some issues in updateMultipleCategoriesOrder, but continuing:', err);
-      return [];
+      const { error } = await supabase
+        .from('menu_categories')
+        .update({ order: newOrder })
+        .eq('id', categoryId);
+
+      if (error) {
+        console.error('Error updating category order:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update category order",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      console.log(`[DEBUG] Successfully updated category ${categoryId} order to ${newOrder}`);
+      return true;
+    } catch (error) {
+      console.error('Error updating category order:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to update category order",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
 
-  return useMutation({
-    mutationFn: updateMultipleCategoriesOrder,
-    onSuccess: (data, variables) => {
-      console.log('✅ Multiple categories order update succeeded');
-      
-      // Invalidate queries to refresh data
-      if (variables.length > 0) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['menuCategories', variables[0].locationId] 
-        });
+  const reorderCategories = async (categories: Array<{id: string, order?: number}>) => {
+    setLoading(true);
+    try {
+      console.log('[DEBUG] Reordering categories:', categories);
+
+      // Update all categories with new order
+      const updates = categories.map((category, index) => ({
+        id: category.id,
+        order: index + 1
+      }));
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('menu_categories')
+          .update({ order: update.order })
+          .eq('id', update.id);
+
+        if (error) {
+          console.error('Error updating category order:', error);
+          toast({
+            title: "Error",
+            description: `Failed to update category order: ${error.message}`,
+            variant: "destructive"
+          });
+          return false;
+        }
       }
+
+      toast({
+        title: "Success",
+        description: "Category order updated successfully"
+      });
       
-      toast.success('Порядок категорій оновлено');
-    },
-    onError: (error: any) => {
-      console.error('❌ Error in useUpdateMultipleMenuCategoriesOrder:', error);
-      toast.error('Помилка при оновленні порядку категорій');
-    },
-  });
+      return true;
+    } catch (error) {
+      console.error('Error reordering categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reorder categories",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    updateCategoryOrder,
+    reorderCategories,
+    loading
+  };
 }; 
