@@ -100,6 +100,22 @@ const App = () => {
                 } 
               />
               <Route 
+                path="/cafe-admin/tables/:locationId" 
+                element={
+                  <ProtectedRoute allowedRoles={["cafe_owner"]}>
+                    <TablesManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/cafe-admin/menu" 
+                element={
+                  <ProtectedRoute allowedRoles={["cafe_owner"]}>
+                    <MenuBuilder />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/cafe-admin/menu-builder" 
                 element={
                   <ProtectedRoute allowedRoles={["cafe_owner"]}>
