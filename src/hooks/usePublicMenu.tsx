@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { MenuCategory, MenuItem, Location, Table, MenuItemVariant } from "@/types/models";
+import { MenuCategory, MenuItem, Location, Table, MenuItemVariant, mapSupabaseLocation, mapSupabaseTable, mapSupabaseMenuCategory, mapSupabaseMenuItem } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 
 export const usePublicMenu = (locationShortId: string, tableShortId?: string) => {
@@ -208,17 +208,8 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
         }
 
         // console.log("✅ PUBLIC MENU: Location found:", locationData);
-        setLocation({
-          id: locationData.id,
-          cafeId: locationData.cafe_id,
-          name: locationData.name,
-          address: locationData.address,
-          shortId: locationData.short_id,
-          coverImage: locationData.cover_image,
-          logoImage: locationData.logo_image,
-          promoImages: locationData.promo_images,
-          createdAt: locationData.created_at
-        });
+        const mappedLocation = mapSupabaseLocation(locationData);
+        setLocation(mappedLocation);
 
         // Try to fetch table by short_id first, then fallback to UUID (optional for new format)
         let tableData = null;
@@ -265,15 +256,8 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
           }
 
           // console.log("✅ PUBLIC MENU: Table found:", matchingTable);
-          setTable({
-            id: matchingTable.id,
-            locationId: matchingTable.location_id,
-            name: matchingTable.name,
-            qrCode: matchingTable.qr_code,
-            qrCodeUrl: matchingTable.qr_code_url,
-            shortId: matchingTable.short_id,
-            createdAt: matchingTable.created_at
-          });
+          const mappedTable = mapSupabaseTable(matchingTable);
+          setTable(mappedTable);
         } else {
           // No table specified (new format) - this is OK for branding page
           console.log("🔍 PUBLIC MENU: No table specified (new format)");
@@ -284,7 +268,7 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('menu_categories')
           .select('*')
-          .eq('cafe_id', locationData.cafe_id)
+          .eq('cafe_id', mappedLocation.cafeId)
           .order('order');
 
         if (categoriesError) {
@@ -293,13 +277,7 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
         }
 
         // console.log("✅ PUBLIC MENU: Categories found:", categoriesData);
-        const mappedCategories = (categoriesData || []).map(cat => ({
-          id: cat.id,
-          cafeId: cat.cafe_id,
-          name: cat.name,
-          order: cat.order,
-          createdAt: cat.created_at
-        }));
+        const mappedCategories = (categoriesData || []).map(cat => mapSupabaseMenuCategory(cat));
         setCategories(mappedCategories);
 
         // Fetch all menu items for these categories
@@ -333,16 +311,8 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
 
           // console.log("✅ PUBLIC MENU: Items found:", itemsData);
           const mappedItems = (itemsData || []).map(item => ({
-            id: item.id,
-            categoryId: item.category_id,
-            name: item.name,
-            description: item.description || undefined,
-            price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
-            weight: item.weight || undefined,
-            imageUrl: item.image_url || undefined,
+            ...mapSupabaseMenuItem(item),
             variants: item.variants ? (Array.isArray(item.variants) ? item.variants as MenuItemVariant[] : undefined) : undefined,
-            order: item.order || 0,
-            createdAt: item.created_at
           }));
           
           console.log('📦 PUBLIC MENU: Loaded items with order from database:', 
