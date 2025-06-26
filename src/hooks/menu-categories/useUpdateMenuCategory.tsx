@@ -1,59 +1,48 @@
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-import { useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { MenuCategory } from "@/types/models";
-import { supabaseAdmin } from "@/integrations/supabase/admin-client";
-
-export const useUpdateMenuCategory = (
-  onCategoriesUpdated: (updatedCategories: MenuCategory[]) => void,
-  categories: MenuCategory[]
-) => {
+export const useUpdateMenuCategory = () => {
+  const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
 
-  const updateCategory = useCallback(async (id: string, name: string, order?: number) => {
+  const updateCategory = async (categoryId: string, name: string) => {
+    setIsUpdating(true);
     try {
-      const updates: { name: string; order?: number } = { name: name.trim() };
-      if (order !== undefined) updates.order = order;
-      
-      console.log("🔄 Updating category:", { id, updates });
-      
-      const { error } = await supabaseAdmin
-        .from("menu_categories")
-        .update(updates)
-        .eq("id", id);
-      
-      if (error) {
-        console.error("❌ Supabase update error:", error);
-        throw new Error(`Помилка оновлення категорії: ${error.message}`);
-      }
-      
-      console.log("✅ Category updated successfully");
-      
-      const updatedCategories = categories.map(cat => 
-        cat.id === id 
-          ? { ...cat, name: name.trim(), ...(order !== undefined ? { order } : {}) }
-          : cat
-      );
-      
-      onCategoriesUpdated(updatedCategories);
-      
-      toast({
-        title: "Категорію оновлено",
-        description: `Категорія успішно оновлена.`,
-      });
-      
-      return true;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Невідома помилка');
-      console.error("❌ Error updating menu category:", error);
-      toast({
-        variant: "destructive",
-        title: "Помилка оновлення категорії",
-        description: error.message
-      });
-      return false;
-    }
-  }, [toast, onCategoriesUpdated, categories]);
+      console.log('[DEBUG] useUpdateMenuCategory: Updating category', { categoryId, name });
 
-  return { updateCategory };
+      const { data, error } = await supabase
+        .from('menu_categories')
+        .update({ name })
+        .eq('id', categoryId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[ERROR] useUpdateMenuCategory: Database error:', error);
+        throw error;
+      }
+
+      console.log('[DEBUG] useUpdateMenuCategory: Category updated successfully:', data);
+      
+      toast({
+        title: 'Success',
+        description: 'Category updated successfully'
+      });
+
+      return data;
+    } catch (err) {
+      console.error('[ERROR] useUpdateMenuCategory: Failed to update category:', err);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update category'
+      });
+      throw err;
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return { updateCategory, isUpdating };
 };

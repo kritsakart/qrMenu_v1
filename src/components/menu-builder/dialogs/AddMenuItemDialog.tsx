@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MenuItem } from "@/types/models";
 import { MenuItemFormState, MenuItemVariantForm } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 import { nanoid } from "nanoid";
 import { Upload, X, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
 
@@ -96,8 +95,8 @@ export const AddMenuItemDialog = ({
       if (!file.type.startsWith('image/')) {
         toast({
           variant: "destructive",
-          title: "Неправильний тип файлу",
-          description: "Будь ласка, виберіть файл зображення"
+          title: "Wrong file type",
+          description: "Please select an image file"
         });
         return;
       }
@@ -106,8 +105,8 @@ export const AddMenuItemDialog = ({
       if (file.size > 5 * 1024 * 1024) {
         toast({
           variant: "destructive",
-          title: "Файл занадто великий",
-          description: "Розмір файлу не повинен перевищувати 5MB"
+          title: "File too large",
+          description: "File size should not exceed 5MB"
         });
         return;
       }
@@ -150,11 +149,11 @@ export const AddMenuItemDialog = ({
         reader.readAsDataURL(imageFile);
       });
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Невідома помилка');
+      const error = err instanceof Error ? err : new Error('Unknown error');
       console.error("❌ DIAGNOSTIC: Error during image processing:", error);
       toast({
         variant: "destructive",
-        title: "Помилка обробки зображення",
+        title: "Image processing error",
         description: error.message
       });
       return null;
@@ -168,8 +167,8 @@ export const AddMenuItemDialog = ({
     if (!formState.name.trim()) {
       toast({
         variant: "destructive",
-        title: "Помилка валідації",
-        description: "Назва товару є обов'язковою"
+        title: "Validation error",
+        description: "Product name is required"
       });
       return;
     }
@@ -177,8 +176,8 @@ export const AddMenuItemDialog = ({
     if (!formState.price || parseFloat(formState.price) <= 0) {
       toast({
         variant: "destructive",
-        title: "Помилка валідації",
-        description: "Ціна повинна бути більше 0"
+        title: "Validation error",
+        description: "Price must be greater than 0"
       });
       return;
     }
@@ -402,15 +401,15 @@ export const AddMenuItemDialog = ({
                   onChange={handleImageChange}
                   className="flex-1"
                 />
-                                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById('item-image-upload')?.click()}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Select
-                  </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById('item-image-upload')?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Select
+                </Button>
               </div>
               <p className="text-xs text-gray-500">Max size: 5MB. Formats: JPG, PNG, GIF</p>
             </div>

@@ -1,63 +1,46 @@
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-import { useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { MenuItem } from "@/types/models";
-import { supabaseAdmin } from "@/integrations/supabase/admin-client";
-import { useAuth } from "@/contexts/AuthContext";
-
-export const useDeleteMenuItem = (onItemDeleted: (items: MenuItem[]) => void, menuItems: MenuItem[]) => {
+export const useDeleteMenuItem = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
 
-  const deleteMenuItem = useCallback(async (id: string) => {
-    console.log("🗑️ DIAGNOSTIC: deleteMenuItem викликано:", id);
-    console.log("🔍 DIAGNOSTIC: deleteMenuItem - поточний користувач:", user);
-    
-    if (!user?.id) {
-      console.error("❌ DIAGNOSTIC: No user found for deleting menu item");
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Не знайдено користувача для видалення пункту меню"
-      });
-      return false;
-    }
-
+  const deleteMenuItem = async (itemId: string, itemName: string) => {
+    setIsDeleting(true);
     try {
-      // Використовуємо адміністративний клієнт для обходу RLS проблем
-      console.log("🗑️ DIAGNOSTIC: Deleting menu item with id:", id);
-      
-      const { error } = await supabaseAdmin
-        .from("menu_items")
+      console.log('[DEBUG] useDeleteMenuItem: Deleting menu item', { itemId });
+
+      const { error } = await supabase
+        .from('menu_items')
         .delete()
-        .eq("id", id);
-      
+        .eq('id', itemId);
+
       if (error) {
-        console.error("❌ DIAGNOSTIC: Supabase delete error:", error);
-        throw new Error(`Помилка видалення пункту меню: ${error.message}`);
+        console.error('[ERROR] useDeleteMenuItem: Database error:', error);
+        throw error;
       }
-      
-      const updatedItems = menuItems.filter(item => item.id !== id);
-      console.log("✅ DIAGNOSTIC: Updated menu items after deletion:", updatedItems);
-      onItemDeleted(updatedItems);
+
+      console.log('[DEBUG] useDeleteMenuItem: Menu item deleted successfully');
       
       toast({
-        title: "Пункт меню видалено",
-        description: `Пункт меню успішно видалено.`,
+        title: 'Success',
+        description: `${itemName} has been deleted from your menu`
       });
-      
+
       return true;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Невідома помилка');
-      console.error("❌ DIAGNOSTIC: Error deleting menu item:", error);
+      console.error('[ERROR] useDeleteMenuItem: Failed to delete menu item:', err);
       toast({
-        variant: "destructive",
-        title: "Помилка видалення пункту меню",
-        description: error.message
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete menu item'
       });
-      return false;
+      throw err;
+    } finally {
+      setIsDeleting(false);
     }
-  }, [toast, menuItems, onItemDeleted, user?.id]);
+  };
 
-  return { deleteMenuItem };
+  return { deleteMenuItem, isDeleting };
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -37,29 +36,29 @@ export const AddCategoryDialog = ({ isOpen, onOpenChange, onAddCategory }: AddCa
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Додавання категорії</DialogTitle>
+          <DialogTitle>Add Category</DialogTitle>
           <DialogDescription>
-            Створіть нову категорію для вашого меню.
+            Create a new category for your menu.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="category-name">Назва категорії</Label>
+            <Label htmlFor="category-name">Category Name</Label>
             <Input
               id="category-name"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
-              placeholder="Введіть назву категорії"
+              placeholder="Enter category name"
               disabled={isLoading}
             />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Скасувати
+            Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading || !categoryName.trim()}>
-            {isLoading ? "Додавання..." : "Додати категорію"}
+            {isLoading ? "Adding..." : "Add Category"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -98,29 +97,29 @@ export const EditCategoryDialog = ({ isOpen, onOpenChange, onUpdateCategory, cat
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Редагування категорії</DialogTitle>
+          <DialogTitle>Edit Category</DialogTitle>
           <DialogDescription>
-            Оновіть дані цієї категорії меню.
+            Update this menu category.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-category-name">Назва категорії</Label>
+            <Label htmlFor="edit-category-name">Category Name</Label>
             <Input
               id="edit-category-name"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="Введіть назву категорії"
+              placeholder="Enter category name"
               disabled={isLoading}
             />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Скасувати
+            Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading || !newCategoryName.trim()}>
-            {isLoading ? "Оновлення..." : "Оновити категорію"}
+            {isLoading ? "Updating..." : "Update Category"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -163,25 +162,25 @@ export const DeleteCategoryDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Видалення категорії</DialogTitle>
+          <DialogTitle>Delete Category</DialogTitle>
           <DialogDescription>
-            Ви впевнені, що хочете видалити цю категорію? Всі пункти меню в цій категорії також будуть видалені.
+            Are you sure you want to delete this category? All menu items in this category will also be deleted.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p>
-            <strong>Категорія:</strong> {categoryName}
+            <strong>Category:</strong> {categoryName}
           </p>
           <p>
-            <strong>Пунктів меню:</strong> {itemCount} буде видалено
+            <strong>Menu items:</strong> {itemCount} will be deleted
           </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Скасувати
+            Cancel
           </Button>
           <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
-            {isLoading ? "Видалення..." : "Видалити категорію"}
+            {isLoading ? "Deleting..." : "Delete Category"}
           </Button>
         </DialogFooter>
       </DialogContent>

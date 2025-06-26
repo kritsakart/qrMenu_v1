@@ -1,63 +1,52 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuItem, MenuItemVariant } from "@/types/models";
-import { supabaseAdmin } from "@/integrations/supabase/admin-client";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useFetchMenuItems = (categoryId?: string) => {
+export const useFetchMenuItems = (cafeId: string | null) => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const fetchMenuItems = useCallback(async () => {
-    if (!categoryId) {
-      console.log("📭 DIAGNOSTIC: No categoryId provided, clearing menu items");
+    if (!cafeId) {
+      console.log("[DEBUG] useFetchMenuItems: No cafeId provided");
       setMenuItems([]);
-      setIsLoading(false);
-      return;
-    }
-
-    if (!user?.id) {
-      console.log("❌ DIAGNOSTIC: No user found for fetching menu items");
-      setMenuItems([]);
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
     
-    setIsLoading(true);
+    setLoading(true);
     setError(null);
     
     try {
-      console.log("🔍 DIAGNOSTIC: Fetching menu items for category:", categoryId);
-      console.log("🔍 DIAGNOSTIC: Current user:", user);
-
-      // Використовуємо адміністративний клієнт для обходу RLS проблем
-      console.log("🔧 DIAGNOSTIC: Using admin client to fetch menu items for category:", categoryId);
+      console.log("[DEBUG] useFetchMenuItems: Fetching menu items for cafeId:", cafeId);
       
-      const { data, error, count } = await supabaseAdmin
+      const { data, error } = await supabase
         .from("menu_items")
-        .select("*", { count: 'exact' })
-        .eq("category_id", categoryId);
+        .select(`
+          *,
+          menu_categories!inner(cafe_id)
+        `)
+        .eq("menu_categories.cafe_id", cafeId)
+        .order("order");
       
-      console.log("📊 DIAGNOSTIC: Query result - count:", count, "error:", error, "data:", data);
+      console.log("[DEBUG] useFetchMenuItems: Query result:", { data, error });
       
       if (error) {
-        console.error("❌ DIAGNOSTIC: Supabase query error:", error);
-        throw new Error(`Помилка бази даних: ${error.message}`);
+        console.error("[ERROR] useFetchMenuItems: Database error:", error);
+        setError(error.message);
+        return;
       }
       
       if (data) {
-        console.log("📊 DIAGNOSTIC: Raw data from Supabase:", data);
-        
         const mappedItems = data.map(item => ({
           id: item.id,
           categoryId: item.category_id,
           name: item.name,
           description: item.description || undefined,
-          price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+          price: typeof item.price === "string" ? parseFloat(item.price) : item.price,
           weight: item.weight || undefined,
           imageUrl: item.image_url || undefined,
           variants: item.variants as MenuItemVariant[] || undefined,
@@ -65,40 +54,31 @@ export const useFetchMenuItems = (categoryId?: string) => {
           createdAt: item.created_at
         }));
         
-        console.log("✅ DIAGNOSTIC: Mapped items:", mappedItems.length, mappedItems);
+        console.log("[DEBUG] useFetchMenuItems: Mapped items:", mappedItems);
         setMenuItems(mappedItems);
       } else {
-        console.log("📭 DIAGNOSTIC: No data returned from Supabase query");
         setMenuItems([]);
       }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Невідома помилка');
-      console.error("❌ DIAGNOSTIC: Error fetching menu items:", error);
-      setError(error);
+      console.error("[ERROR] useFetchMenuItems: Unexpected error:", err);
+      setError("Failed to fetch menu items");
       toast({
         variant: "destructive",
-        title: "Помилка завантаження пунктів меню",
-        description: error.message
+        title: "Error loading menu items",
+        description: "Failed to fetch menu items"
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, [categoryId, toast, user?.id]);
+  }, [cafeId, toast]);
 
   useEffect(() => {
-    console.log("🚀 DIAGNOSTIC: useFetchMenuItems effect triggered, categoryId:", categoryId, "user:", user?.id);
-    if (categoryId && user?.id) {
-      fetchMenuItems();
-    } else {
-      console.log("⏳ DIAGNOSTIC: Waiting for categoryId and user...");
-      setIsLoading(false);
-      setMenuItems([]);
-    }
-  }, [fetchMenuItems, categoryId, user?.id]);
+    fetchMenuItems();
+  }, [fetchMenuItems]);
 
   return {
     menuItems,
-    isLoading,
+    loading,
     error,
     fetchMenuItems,
     setMenuItems

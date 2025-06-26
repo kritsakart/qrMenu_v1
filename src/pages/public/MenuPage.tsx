@@ -233,7 +233,7 @@ const MenuPage = () => {
                 <ul>
                   {allLocations.map(loc => (
                     <li key={loc.id}>
-                      id: <b>{loc.id}</b>, name: {loc.name}, cafe_id: {loc.cafe_id}
+                      id: <b>{loc.id}</b>, name: {loc.name}, cafeId: {loc.cafeId}
                     </li>
                   ))}
                 </ul>

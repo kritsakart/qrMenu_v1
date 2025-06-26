@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MenuItem } from "@/types/models";
 import { Edit, Trash, Image as ImageIcon, GripVertical, Move } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -92,17 +93,17 @@ const SortableMenuItem = ({ item, onEdit, onDelete }: SortableMenuItemProps) => 
             {...attributes} 
             {...listeners} 
             className="flex-shrink-0 cursor-grab active:cursor-grabbing hover:bg-gray-200 p-2 rounded-md transition-colors border border-gray-300 bg-gray-100 flex flex-col items-center justify-center min-w-[32px]"
-            title="Перетягніть для зміни порядку"
+            title="Drag to reorder"
           >
             <GripVertical className="h-4 w-4 text-gray-600" />
           </div>
           
-          {/* Зображення */}
+          {/* Image */}
           <div className="flex-shrink-0">
             <MenuItemImage imageUrl={item.imageUrl} itemName={item.name} />
           </div>
           
-          {/* Контент по центру */}
+          {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-1">
               <h3 className="font-semibold text-base truncate pr-2">{item.name}</h3>
@@ -124,7 +125,7 @@ const SortableMenuItem = ({ item, onEdit, onDelete }: SortableMenuItemProps) => 
             )}
           </div>
           
-          {/* Кнопки справа */}
+          {/* Action buttons */}
           <div className="flex flex-col sm:flex-col gap-1 sm:gap-2 flex-shrink-0">
             <Button
               variant="outline"
@@ -178,7 +179,6 @@ export const MenuItemList = ({
   
   const [localItems, setLocalItems] = useState<MenuItem[]>(filteredItems);
   const [lastFilteredItemsIds, setLastFilteredItemsIds] = useState<string>('');
-  const updateOrderMutation = useUpdateMultipleMenuItemsOrder();
   
   // Update local items when filtered items change (but preserve order if items are the same)
   useEffect(() => {
@@ -187,7 +187,7 @@ export const MenuItemList = ({
     if (currentFilteredIds !== lastFilteredItemsIds) {
       console.log('🔄 Items composition changed, updating local items');
       
-      // Спробуємо завантажити збережений порядок з localStorage
+      // Try to load saved order from localStorage
       let orderedItems = [...filteredItems];
       
       if (selectedCategoryId) {
@@ -197,7 +197,7 @@ export const MenuItemList = ({
             const savedOrder = JSON.parse(savedOrderRaw) as Record<string, number>;
             console.log("📂 Loading saved order from localStorage:", savedOrder);
             
-            // Сортуємо товари згідно збереженого порядку
+            // Sort items according to saved order
             orderedItems.sort((a, b) => {
               const orderA = savedOrder[a.id] ?? 999;
               const orderB = savedOrder[b.id] ?? 999;
@@ -246,7 +246,7 @@ export const MenuItemList = ({
         
         setLocalItems(newItems);
         
-        // Зберігаємо порядок у localStorage
+        // Save order to localStorage
         if (selectedCategoryId) {
           const orderMap = newItems.reduce((acc, item, index) => {
             acc[item.id] = index;
@@ -259,25 +259,13 @@ export const MenuItemList = ({
           localStorage.setItem(key, value);
           console.log("💾 Saved order to localStorage:", orderMap);
           
-          // Тригеримо кастомну подію для оновлення в інших вкладках/компонентах
+          // Trigger custom event for updates in other tabs/components
           window.dispatchEvent(new CustomEvent('localStorageChange', {
             detail: { key, newValue: value, oldValue: localStorage.getItem(key) }
           }));
           
           console.log("📡 Triggered storage change event for public menu sync");
         }
-        
-        // Prepare updates with new order values
-        const updates = newItems.map((item, index) => ({
-          itemId: item.id,
-          newOrder: index,
-          categoryId: item.categoryId,
-        }));
-        
-        console.log("📤 Sending updates to database:", updates);
-        
-        // Update the order in the database
-        updateOrderMutation.mutate(updates);
       } else {
         console.error("❌ Invalid indices for drag operation:", { oldIndex, newIndex });
       }

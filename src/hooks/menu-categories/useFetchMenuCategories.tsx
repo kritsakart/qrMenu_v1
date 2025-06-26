@@ -1,93 +1,84 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { MenuCategory, mapSupabaseMenuCategory } from "@/types/models";
 import { useToast } from "@/hooks/use-toast";
-import { MenuCategory } from "@/types/models";
-import { supabaseAdmin } from "@/integrations/supabase/admin-client";
-import { useAuth } from "@/contexts/AuthContext";
 
-export const useFetchMenuCategories = () => {
+export const useFetchMenuCategories = (cafeId: string) => {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
-  
-  console.log("🔍 DIAGNOSTIC: useFetchMenuCategories - поточний користувач:", user);
-  console.log("🔍 DIAGNOSTIC: useFetchMenuCategories - user.cafeId:", user?.cafeId);
-  
-  const fetchCategories = useCallback(async () => {
-    if (!user?.cafeId) {
-      console.log("❌ DIAGNOSTIC: No user or cafeId found, skipping category fetch. User:", user);
-      setIsLoading(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      console.log("🔍 DIAGNOSTIC: Fetching menu categories for cafe:", user.cafeId);
-      
-      // Використовуємо адміністративний клієнт - напряму фільтруємо по cafe_id
-      const { data, error, count } = await supabaseAdmin
-        .from("menu_categories")
-        .select("*", { count: 'exact' })
-        .eq("cafe_id", user.cafeId)
-        .order("order", { ascending: true });
-      
-      console.log("📊 DIAGNOSTIC: Query result - count:", count, "error:", error, "data:", data);
-      
-      if (error) {
-        console.error("❌ DIAGNOSTIC: Supabase query error:", error);
-        throw new Error(`Помилка бази даних: ${error.message}`);
-      }
-      
-      console.log("📊 DIAGNOSTIC: Raw data from Supabase:", data);
-      
-      if (data && data.length > 0) {
-        const mappedCategories = data.map(category => ({
-          id: category.id,
-          cafeId: category.cafe_id,
-          name: category.name,
-          order: category.order,
-          createdAt: category.created_at
-        }));
-        
-        console.log("✅ DIAGNOSTIC: Mapped categories:", mappedCategories.length, mappedCategories);
-        setCategories(mappedCategories);
-      } else {
-        console.log("📭 DIAGNOSTIC: No categories found in database for cafe:", user.cafeId);
-        setCategories([]);
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Невідома помилка');
-      console.error("❌ DIAGNOSTIC: Error fetching menu categories:", error);
-      setError(error);
-      toast({
-        variant: "destructive",
-        title: "Помилка завантаження категорій",
-        description: error.message
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast, user?.cafeId]);
 
   useEffect(() => {
-    console.log("🚀 DIAGNOSTIC: useFetchMenuCategories effect triggered, user?.cafeId:", user?.cafeId);
-    if (user?.cafeId) {
-      fetchCategories();
-    } else {
-      console.log("⏳ DIAGNOSTIC: Waiting for user authentication...");
-      setIsLoading(false);
-    }
-  }, [fetchCategories, user?.cafeId]);
+    const fetchCategories = async () => {
+      if (!cafeId) {
+        console.log("❌ useFetchMenuCategories: No cafeId provided");
+        setIsLoading(false);
+        return;
+      }
 
-  return {
-    categories,
-    setCategories,
-    isLoading,
-    error,
-    fetchCategories
-  };
-};
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        console.log("🔍 useFetchMenuCategories: Fetching categories for cafeId:", cafeId);
+        console.log("🔍 useFetchMenuCategories: Using regular supabase client (RLS disabled)");
+
+        const { data, error } = await supabase
+          .from('menu_categories')
+          .select('*')
+          .eq('cafe_id', cafeId)
+          .order('order');
+
+        console.log("🔍 useFetchMenuCategories: Raw response:", { data, error });
+        console.log("🔍 useFetchMenuCategories: Data length:", data?.length || 0);
+
+        if (error) {
+          console.error("❌ useFetchMenuCategories: Supabase error:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log("⚠️ useFetchMenuCategories: No data returned (null)");
+          setCategories([]);
+          return;
+        }
+
+        if (data.length === 0) {
+          console.log("⚠️ useFetchMenuCategories: Empty array returned - no categories found for this cafe");
+          setCategories([]);
+          return;
+        }
+
+        console.log("✅ useFetchMenuCategories: Found categories:", data.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          cafeId: cat.cafe_id,
+          order: cat.order
+        })));
+
+        const mappedCategories = data.map(mapSupabaseMenuCategory);
+        console.log("✅ useFetchMenuCategories: Mapped categories:", mappedCategories);
+        
+        setCategories(mappedCategories);
+
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Unknown error');
+        console.error("❌ useFetchMenuCategories: Error:", error);
+        setError(error);
+        
+        toast({
+          variant: "destructive",
+          title: "Error loading categories",
+          description: error.message
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [cafeId, toast]);
+
+  return { categories, isLoading, error };
+}; 

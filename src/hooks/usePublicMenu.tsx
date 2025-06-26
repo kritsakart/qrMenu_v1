@@ -194,8 +194,8 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
           locationError = uuidResult.error;
         }
 
-        // console.log("🔍 PUBLIC MENU: Raw location data from database:", locationData);
-        // console.log("🔍 PUBLIC MENU: Location error if any:", locationError);
+        console.log("🔍 PUBLIC MENU: Raw location data from database:", locationData);
+        console.log("🔍 PUBLIC MENU: Location error if any:", locationError);
 
         if (locationError) {
           // console.error("❌ PUBLIC MENU: Location error:", locationError);
@@ -210,6 +210,8 @@ export const usePublicMenu = (locationShortId: string, tableShortId?: string) =>
         // console.log("✅ PUBLIC MENU: Location found:", locationData);
         const mappedLocation = mapSupabaseLocation(locationData);
         setLocation(mappedLocation);
+        
+        console.log("🎯 PUBLIC MENU: CAFE ID FROM QR CODE:", mappedLocation.cafeId);
 
         // Try to fetch table by short_id first, then fallback to UUID (optional for new format)
         let tableData = null;

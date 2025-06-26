@@ -1,309 +1,102 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MenuItem, MenuCategory } from "@/types/models";
-import { useMenuCategories } from "@/hooks/menu-categories";
-import { useMenuItems } from "@/hooks/useMenuItems";
+import { useFetchMenuCategories } from "@/hooks/menu-categories/useFetchMenuCategories";
+import { useFetchMenuItems } from "@/hooks/menu/useFetchMenuItems";
+import { useAddMenuCategory } from "@/hooks/menu-categories/useAddMenuCategory";
+import { useUpdateMenuCategory } from "@/hooks/menu-categories/useUpdateMenuCategory";
+import { useDeleteMenuCategory } from "@/hooks/menu-categories/useDeleteMenuCategory";
+import { useUpdateMenuCategoryOrder } from "@/hooks/menu-categories/useUpdateMenuCategoryOrder";
+import { useAddMenuItem } from "@/hooks/menu/useAddMenuItem";
+import { useUpdateMenuItem } from "@/hooks/menu/useUpdateMenuItem";
+import { useDeleteMenuItem } from "@/hooks/menu/useDeleteMenuItem";
 import { useAuth } from "@/contexts/AuthContext";
 import { type MenuItemFormState } from "@/components/menu-builder/dialogs/MenuItemDialogs";
 
 export const useMenuPageHandlers = (selectedCategoryId: string | null) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const cafeId = user?.cafeId || "";
   
+  // Debug logging for user state
+  console.log("🔍 useMenuPageHandlers - User:", user);
+  console.log("🔍 useMenuPageHandlers - CafeId:", cafeId);
+  
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+
+  // Fetch data using the updated hook signature
   const { 
     categories, 
     isLoading: categoriesLoading, 
-    error: categoriesError,
-    addCategory,
-    updateCategory,
-    deleteCategory,
-    updateCategoriesOrder
-  } = useMenuCategories();
-  
+    error: categoriesError 
+  } = useFetchMenuCategories(cafeId);
+
   const { 
     menuItems, 
-    isLoading: menuItemsLoading,
+    isLoading: menuItemsLoading, 
     error: menuItemsError,
-    addMenuItem,
-    updateMenuItem,
-    deleteMenuItem,
-    refreshMenuItems
-  } = useMenuItems(selectedCategoryId || undefined);
+    refetch: refreshMenuItems 
+  } = useFetchMenuItems(selectedCategoryId);
 
-  // Category handlers
-  const handleAddCategory = async (name: string): Promise<MenuCategory | undefined> => {
-    console.log("🔍 DIAGNOSTIC: handleAddCategory викликано з параметром:", name);
-    
-    if (name.trim() === "") {
-      console.log("❌ DIAGNOSTIC: Порожня назва категорії");
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Назва категорії не може бути порожньою",
-      });
-      return undefined;
-    }
-    
-    try {
-      console.log("🚀 DIAGNOSTIC: handleAddCategory - Спроба додавання категорії:", name);
-      console.log("🔍 DIAGNOSTIC: Стан addCategory функції:", typeof addCategory);
-      
-      const category = await addCategory(name);
-      
-      if (category) {
-        console.log("✅ DIAGNOSTIC: handleAddCategory - Категорію успішно додано:", category);
-        return category;
-      } else {
-        console.log("❌ DIAGNOSTIC: handleAddCategory - Не вдалось створити категорію (повернулось null/undefined)");
-        toast({
-          variant: "destructive",
-          title: "Помилка додавання категорії",
-          description: "Не вдалось створити категорію",
-        });
-        return undefined;
-      }
-    } catch (err) {
-      console.error("❌ DIAGNOSTIC: handleAddCategory - Помилка при додаванні категорії:", err);
-      const errorMessage = err instanceof Error ? err.message : "Невідома помилка";
-      toast({
-        variant: "destructive",
-        title: "Помилка додавання категорії",
-        description: errorMessage,
-      });
-      return undefined;
-    }
-  };
-  
-  const handleUpdateCategory = async (name: string): Promise<boolean | undefined> => {
-    if (!selectedCategoryId) {
-      console.log("❌ DIAGNOSTIC: handleUpdateCategory - selectedCategoryId відсутній");
-      return undefined;
-    }
-    
-    if (name.trim() === "") {
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Назва категорії не може бути порожньою",
-      });
-      return false;
-    }
-    
-    try {
-      console.log("Оновлення категорії:", { id: selectedCategoryId, name });
-      const success = await updateCategory(selectedCategoryId, name);
-      if (success) {
-        toast({
-          title: "Категорію оновлено",
-          description: `Категорія успішно оновлена.`,
-        });
-      }
-      return success;
-    } catch (err) {
-      console.error("Помилка при оновленні категорії:", err);
-      toast({
-        variant: "destructive",
-        title: "Помилка оновлення категорії",
-        description: err instanceof Error ? err.message : "Невідома помилка",
-      });
-      return false;
-    }
-  };
-  
-  const handleDeleteCategory = async (): Promise<boolean | undefined> => {
-    if (!selectedCategoryId) {
-      console.log("❌ DIAGNOSTIC: handleDeleteCategory - selectedCategoryId відсутній");
-      return undefined;
-    }
-    
-    try {
-      console.log("Видалення категорії:", selectedCategoryId);
-      const success = await deleteCategory(selectedCategoryId);
-      if (success) {
-        toast({
-          title: "Категорію видалено",
-          description: `Категорія успішно видалена.`,
-        });
-      }
-      return success;
-    } catch (err) {
-      console.error("Помилка при видаленні категорії:", err);
-      toast({
-        variant: "destructive",
-        title: "Помилка видалення категорії",
-        description: err instanceof Error ? err.message : "Невідома помилка",
-      });
-      return false;
-    }
-  };
+  // Category operations
+  const { addCategory } = useAddMenuCategory();
+  const { updateCategory } = useUpdateMenuCategory();
+  const { deleteCategory } = useDeleteMenuCategory();
+  const { updateCategoryOrder } = useUpdateMenuCategoryOrder();
 
-  const handleReorderCategories = async (reorderedCategories: MenuCategory[]) => {
-    if (!user?.cafeId) {
-      console.error("❌ handleReorderCategories - User cafeId not found");
+  // Menu item operations
+  const { addMenuItem } = useAddMenuItem();
+  const { updateMenuItem } = useUpdateMenuItem();
+  const { deleteMenuItem } = useDeleteMenuItem();
+
+  const handleAddCategory = useCallback(async (categoryData: Omit<MenuCategory, 'id' | 'createdAt'>) => {
+    if (!cafeId) {
+      console.error("No cafeId available for adding category");
       return;
     }
+    
+    console.log("🔧 Adding category with cafeId:", cafeId);
+    await addCategory({ ...categoryData, cafeId });
+  }, [addCategory, cafeId]);
 
-    try {
-      console.log("🔄 Reordering categories:", reorderedCategories.map(c => ({ id: c.id, name: c.name })));
-      await updateCategoriesOrder(reorderedCategories, user.cafeId);
-    } catch (err) {
-      console.error("❌ Error reordering categories:", err);
-      toast({
-        variant: "destructive",
-        title: "Помилка переупорядкування",
-        description: "Не вдалось змінити порядок категорій",
-      });
-    }
-  };
+  const handleUpdateCategory = useCallback(async (categoryId: string, updates: Partial<MenuCategory>) => {
+    await updateCategory(categoryId, updates);
+  }, [updateCategory]);
 
-  // MenuItem handlers
-  const handleAddMenuItem = async (formData: MenuItemFormState): Promise<MenuItem | undefined> => {
-    console.log("🎯 DIAGNOSTIC: handleAddMenuItem - selectedCategoryId:", selectedCategoryId);
-    console.log("🎯 DIAGNOSTIC: handleAddMenuItem - formData:", formData);
-    
-    if (!selectedCategoryId || selectedCategoryId.trim() === '') {
-      console.error("❌ DIAGNOSTIC: handleAddMenuItem - selectedCategoryId порожній або відсутній:", selectedCategoryId);
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Необхідно вибрати категорію для додавання пункту меню",
-      });
-      return undefined;
-    }
-    
-    if (formData.name.trim() === "") {
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Назва пункту меню не може бути порожньою",
-      });
-      return undefined;
-    }
-    
-    const price = parseFloat(formData.price);
-    if (isNaN(price) || price <= 0) {
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Ціна повинна бути додатним числом",
-      });
-      return undefined;
-    }
-    
-    try {
-      console.log("🚀 DIAGNOSTIC: handleAddMenuItem - спроба додавання пункту меню:", {
-        categoryId: selectedCategoryId,
-        name: formData.name,
-        price: price,
-        description: formData.description.trim() || undefined,
-        weight: formData.weight.trim() || undefined,
-        imageUrl: formData.imageUrl.trim() || undefined,
-      });
-      
-      // Конвертуємо варіанти з форми в правильний формат
-      const variants = formData.variants ? formData.variants.map(v => ({
-        id: v.id,
-        name: v.name,
-        price: parseFloat(v.price) || 0,
-        isDefault: v.isDefault
-      })) : undefined;
+  const handleDeleteCategory = useCallback(async (categoryId: string) => {
+    await deleteCategory(categoryId);
+  }, [deleteCategory]);
 
-      const menuItem = await addMenuItem(selectedCategoryId, {
-        name: formData.name,
-        description: formData.description.trim() || undefined,
-        price: price,
-        weight: formData.weight.trim() || undefined,
-        imageUrl: formData.imageUrl.trim() || undefined,
-        variants: variants,
-      });
-      
-      if (menuItem) {
-        console.log("✅ DIAGNOSTIC: handleAddMenuItem - пункт меню успішно додано:", menuItem);
-        return menuItem;
-      } else {
-        console.log("❌ DIAGNOSTIC: handleAddMenuItem - не вдалось додати пункт меню");
-        return undefined;
-      }
-    } catch (err) {
-      console.error("❌ DIAGNOSTIC: handleAddMenuItem - помилка при додаванні пункту меню:", err);
-      toast({
-        variant: "destructive",
-        title: "Помилка додавання пункту меню",
-        description: err instanceof Error ? err.message : "Невідома помилка",
-      });
-      return undefined;
-    }
-  };
-  
-  const handleUpdateMenuItem = async (formData: MenuItemFormState): Promise<boolean | undefined> => {
-    if (!selectedMenuItem) return undefined;
-    
-    if (formData.name.trim() === "") {
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Назва пункту меню не може бути порожньою",
-      });
-      return undefined;
-    }
-    
-    const price = parseFloat(formData.price);
-    if (isNaN(price) || price <= 0) {
-      toast({
-        variant: "destructive",
-        title: "Помилка",
-        description: "Ціна повинна бути додатним числом",
-      });
-      return undefined;
-    }
-    
-    // Конвертуємо варіанти з форми в правильний формат
-    const variants = formData.variants ? formData.variants.map(v => ({
-      id: v.id,
-      name: v.name,
-      price: parseFloat(v.price) || 0,
-      isDefault: v.isDefault
-    })) : undefined;
+  const handleReorderCategories = useCallback(async (reorderedCategories: MenuCategory[]) => {
+    await updateCategoryOrder(reorderedCategories);
+  }, [updateCategoryOrder]);
 
-    const success = await updateMenuItem(selectedMenuItem.id, {
-      name: formData.name,
-      description: formData.description.trim() || undefined,
-      price: price,
-      weight: formData.weight.trim() || undefined,
-      imageUrl: formData.imageUrl.trim() || undefined,
-      variants: variants,
-    });
-    
-    return success;
-  };
-  
-  const handleDeleteMenuItem = async (): Promise<boolean | undefined> => {
-    if (!selectedMenuItem) return undefined;
-    
-    const success = await deleteMenuItem(selectedMenuItem.id);
-    return success;
-  };
+  const handleAddMenuItem = useCallback(async (itemData: Omit<MenuItem, 'id' | 'createdAt'>) => {
+    await addMenuItem(itemData);
+  }, [addMenuItem]);
+
+  const handleUpdateMenuItem = useCallback(async (itemId: string, updates: Partial<MenuItem>) => {
+    await updateMenuItem(itemId, updates);
+  }, [updateMenuItem]);
+
+  const handleDeleteMenuItem = useCallback(async (itemId: string) => {
+    await deleteMenuItem(itemId);
+  }, [deleteMenuItem]);
 
   return {
     categories,
     menuItems,
     selectedMenuItem,
     setSelectedMenuItem,
-    
     categoriesLoading,
     menuItemsLoading,
-    
     categoriesError,
     menuItemsError,
-    
     refreshMenuItems,
-    
     handleAddCategory,
     handleUpdateCategory,
     handleDeleteCategory,
     handleReorderCategories,
-    
     handleAddMenuItem,
     handleUpdateMenuItem,
     handleDeleteMenuItem,

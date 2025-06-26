@@ -7,7 +7,7 @@ import { setStoredUser } from "./useStoredUser";
  */
 export const fetchCafeOwnerData = async (ownerId: string): Promise<AppUser> => {
   try {
-    console.log(`Fetching complete data for cafe owner with ID: ${ownerId}`);
+    console.log(`🔍 fetchCafeOwnerData: Fetching complete data for cafe owner with ID: ${ownerId}`);
     
     const { data: cafeOwner, error: fetchError } = await supabaseAdmin
       .from("cafe_owners")
@@ -15,17 +15,24 @@ export const fetchCafeOwnerData = async (ownerId: string): Promise<AppUser> => {
       .eq("id", ownerId)
       .maybeSingle();
 
+    console.log(`🔍 fetchCafeOwnerData: Raw response from database:`, {
+      data: cafeOwner,
+      error: fetchError,
+      ownerId: ownerId
+    });
+
     if (fetchError) {
-      console.error("Error fetching owner data:", fetchError);
+      console.error("❌ fetchCafeOwnerData: Error fetching owner data:", fetchError);
       throw new Error(`Error retrieving user data: ${fetchError.message}`);
     }
 
     if (!cafeOwner) {
-      console.error("No owner data found for ID:", ownerId);
+      console.error("❌ fetchCafeOwnerData: No owner data found for ID:", ownerId);
       throw new Error("Owner data not found");
     }
 
-    console.log("Successfully fetched cafe owner data:", cafeOwner);
+    console.log("✅ fetchCafeOwnerData: Successfully fetched cafe owner data:", cafeOwner);
+    console.log("🔍 fetchCafeOwnerData: Setting cafeId to user ID:", cafeOwner.id);
 
     const cafeOwnerData: AppUser = {
       id: cafeOwner.id,
@@ -35,10 +42,12 @@ export const fetchCafeOwnerData = async (ownerId: string): Promise<AppUser> => {
       email: cafeOwner.email,
     };
 
+    console.log("🎯 fetchCafeOwnerData: Final user object:", cafeOwnerData);
+
     setStoredUser(cafeOwnerData);
     return cafeOwnerData;
   } catch (error) {
-    console.error("Error in fetchCafeOwnerData:", error);
+    console.error("❌ fetchCafeOwnerData: Error in fetchCafeOwnerData:", error);
     throw error;
   }
 };

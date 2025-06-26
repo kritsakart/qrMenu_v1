@@ -1,328 +1,309 @@
-
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import React, { useState } from "react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
+import { useAuthState } from "@/hooks/auth/useAuthState";
+import { useFetchMenuCategoriesNew } from "@/hooks/menu-categories/useFetchMenuCategoriesNew";
+import { useFetchMenuItems } from "@/hooks/menu/useFetchMenuItems";
+import { useAddMenuCategory } from "@/hooks/menu-categories/useAddMenuCategory";
+import { useUpdateMenuCategory } from "@/hooks/menu-categories/useUpdateMenuCategory";
+import { useDeleteMenuCategory } from "@/hooks/menu-categories/useDeleteMenuCategory";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { MenuCategory, MenuItem, MenuItemOption } from "@/types/models";
-import { getCafeOwnerData } from "@/data/mockData";
-
-// Import the extracted components
-import { CategoryList } from "@/components/menu-builder/CategoryList";
-import { MenuItemList } from "@/components/menu-builder/MenuItemList";
-import { 
-  AddCategoryDialog, 
-  EditCategoryDialog, 
-  DeleteCategoryDialog 
-} from "@/components/menu-builder/dialogs/CategoryDialogs";
-import { 
-  AddMenuItemDialog, 
-  EditMenuItemDialog, 
-  DeleteMenuItemDialog 
-} from "@/components/menu-builder/dialogs/MenuItemDialogs";
+import { Edit, Trash, Plus } from "lucide-react";
 
 const MenuBuilder = () => {
-  const { user } = useAuth();
-  const cafeId = user?.cafeId || "cafe-1";
-  const cafeData = getCafeOwnerData(cafeId);
+  console.log('[DEBUG] MenuBuilder: Component rendering...');
+  
   const { toast } = useToast();
-  
-  // State for categories
-  const [categories, setCategories] = useState<MenuCategory[]>(cafeData.categories);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState({ name: "" });
-  
-  // State for menu items
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(cafeData.menuItems);
-  const [menuItemOptions, setMenuItemOptions] = useState<MenuItemOption[]>(cafeData.menuItemOptions);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
-  const [newMenuItem, setNewMenuItem] = useState<{
-    name: string;
-    description: string;
-    price: string;
-    weight: string;
-    imageUrl: string;
-  }>({
-    name: "",
-    description: "",
-    price: "",
-    weight: "",
-    imageUrl: "",
-  });
-  
-  // Dialog open/close states
-  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
-  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
-  const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
-  const [isAddMenuItemDialogOpen, setIsAddMenuItemDialogOpen] = useState(false);
-  const [isEditMenuItemDialogOpen, setIsEditMenuItemDialogOpen] = useState(false);
-  const [isDeleteMenuItemDialogOpen, setIsDeleteMenuItemDialogOpen] = useState(false);
+  const { user } = useAuthState();
+  const cafeId = user?.id;
 
-  // Set the first category as selected by default
-  useEffect(() => {
-    if (categories.length > 0 && !selectedCategoryId) {
-      setSelectedCategoryId(categories[0].id);
-    }
-  }, [categories, selectedCategoryId]);
+  // State for dialogs
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [categoryName, setCategoryName] = useState("");
+
+  // Data fetching
+  const shouldFetch = Boolean(cafeId);
   
-  // Category CRUD operations
-  const handleAddCategory = async (name: string): Promise<MenuCategory | undefined> => {
-    const newCategoryObj: MenuCategory = {
-      id: `cat-${Date.now()}`,
-      cafeId,
-      name: name,
-      order: categories.length + 1,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setCategories([...categories, newCategoryObj]);
-    setNewCategory({ name: "" });
-    setSelectedCategoryId(newCategoryObj.id);
-    
-    toast({
-      title: "Category added",
-      description: `${name} has been added to your menu.`,
-    });
-    
-    return newCategoryObj;
-  };
-  
-  const handleUpdateCategory = async (name: string): Promise<boolean | undefined> => {
-    if (!selectedCategoryId) return false;
-    
-    setCategories(
-      categories.map(cat => 
-        cat.id === selectedCategoryId 
-          ? { ...cat, name: name }
-          : cat
-      )
-    );
-    
-    toast({
-      title: "Category updated",
-      description: `Category has been updated successfully.`,
-    });
-    
-    return true;
-  };
-  
-  const handleDeleteCategory = async (): Promise<boolean | undefined> => {
-    if (!selectedCategoryId) return false;
-    
-    // Remove the category and its menu items
-    const updatedCategories = categories.filter(cat => cat.id !== selectedCategoryId);
-    const updatedMenuItems = menuItems.filter(item => item.categoryId !== selectedCategoryId);
-    
-    setCategories(updatedCategories);
-    setMenuItems(updatedMenuItems);
-    
-    // Select another category if available
-    if (updatedCategories.length > 0) {
-      setSelectedCategoryId(updatedCategories[0].id);
-    } else {
-      setSelectedCategoryId(null);
-    }
-    
-    toast({
-      title: "Category deleted",
-      description: `Category and all its menu items have been deleted.`,
-      variant: "destructive",
-    });
-    
-    return true;
-  };
-  
-  // MenuItem CRUD operations
-  const handleAddMenuItem = async (formData: {
-    name: string;
-    description: string;
-    price: string;
-    weight: string;
-    imageUrl: string;
-  }): Promise<MenuItem | undefined> => {
-    if (!selectedCategoryId) return undefined;
-    
-    const menuItem: MenuItem = {
-      id: `item-${Date.now()}`,
-      categoryId: selectedCategoryId,
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price) || 0,
-      weight: formData.weight,
-      imageUrl: formData.imageUrl || undefined,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setMenuItems([...menuItems, menuItem]);
-    
-    toast({
-      title: "Menu item added",
-      description: `${formData.name} has been added to your menu.`,
-    });
-    
-    return menuItem;
-  };
-  
-  const handleUpdateMenuItem = async (formData: {
-    name: string;
-    description: string;
-    price: string;
-    weight: string;
-    imageUrl: string;
-  }): Promise<boolean | undefined> => {
-    if (!selectedMenuItem) return false;
-    
-    const updatedMenuItem: MenuItem = {
-      ...selectedMenuItem,
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price) || 0,
-      weight: formData.weight,
-      imageUrl: formData.imageUrl || undefined,
-    };
-    
-    setMenuItems(
-      menuItems.map(item => 
-        item.id === selectedMenuItem.id ? updatedMenuItem : item
-      )
-    );
-    
-    toast({
-      title: "Menu item updated",
-      description: `${updatedMenuItem.name} has been updated successfully.`,
-    });
-    
-    return true;
-  };
-  
-  const handleDeleteMenuItem = async (): Promise<boolean | undefined> => {
-    if (!selectedMenuItem) return false;
-    
-    setMenuItems(menuItems.filter(item => item.id !== selectedMenuItem.id));
-    
-    toast({
-      title: "Menu item deleted",
-      description: `${selectedMenuItem.name} has been deleted from your menu.`,
-      variant: "destructive",
-    });
-    
-    return true;
-  };
-  
-  // Helper functions for dialog operations
-  const openEditCategoryDialog = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId);
-    if (category) {
-      setNewCategory({ name: category.name });
-      setSelectedCategoryId(categoryId);
-      setIsEditCategoryDialogOpen(true);
+  const { 
+    categories, 
+    loading: categoriesLoading, 
+    error: categoriesError 
+  } = useFetchMenuCategoriesNew(shouldFetch ? cafeId : null);
+
+  const { 
+    menuItems, 
+    loading: itemsLoading, 
+    error: itemsError 
+  } = useFetchMenuItems(shouldFetch ? cafeId : null);
+
+  // CRUD hooks
+  const { addCategory } = useAddMenuCategory();
+  const { updateCategory } = useUpdateMenuCategory();
+  const { deleteCategory } = useDeleteMenuCategory();
+
+  console.log('[DEBUG] MenuBuilder: fetch results =', {
+    categoriesCount: categories?.length || 0,
+    menuItemsCount: menuItems?.length || 0,
+    categoriesLoading,
+    itemsLoading,
+    categoriesError,
+    itemsError
+  });
+
+  // Category CRUD handlers
+  const handleAddCategory = async () => {
+    if (!categoryName.trim() || !cafeId) return;
+
+    try {
+      await addCategory(cafeId, categoryName.trim());
+      setCategoryName("");
+      setIsAddCategoryOpen(false);
+      // Refresh page to see updates
+      window.location.reload();
+    } catch (error) {
+      console.error('Error adding category:', error);
     }
   };
-  
-  const openDeleteCategoryDialog = (categoryId: string) => {
-    setSelectedCategoryId(categoryId);
-    setIsDeleteCategoryDialogOpen(true);
+
+  const handleEditCategory = async () => {
+    if (!categoryName.trim() || !selectedCategory) return;
+
+    try {
+      await updateCategory(selectedCategory.id, categoryName.trim());
+      setCategoryName("");
+      setSelectedCategory(null);
+      setIsEditCategoryOpen(false);
+      // Refresh page to see updates
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating category:', error);
+    }
   };
-  
-  const openEditMenuItemDialog = (item: MenuItem) => {
-    setSelectedMenuItem(item);
-    setNewMenuItem({
-      name: item.name,
-      description: item.description || "",
-      price: item.price.toString(),
-      weight: item.weight || "",
-      imageUrl: item.imageUrl || "",
-    });
-    setIsEditMenuItemDialogOpen(true);
+
+  const handleDeleteCategory = async () => {
+    if (!selectedCategory) return;
+
+    try {
+      await deleteCategory(selectedCategory.id);
+      setSelectedCategory(null);
+      setIsDeleteCategoryOpen(false);
+      // Refresh page to see updates
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    }
   };
-  
-  const openDeleteMenuItemDialog = (item: MenuItem) => {
-    setSelectedMenuItem(item);
-    setIsDeleteMenuItemDialogOpen(true);
+
+  // Dialog openers
+  const openEditDialog = (category: any) => {
+    setSelectedCategory(category);
+    setCategoryName(category.name);
+    setIsEditCategoryOpen(true);
   };
-  
-  // Get current category name for dialogs
-  const currentCategoryName = selectedCategoryId
-    ? categories.find(c => c.id === selectedCategoryId)?.name || ""
-    : "";
-  
-  // Get items count for selected category
-  const selectedCategoryItemCount = selectedCategoryId
-    ? menuItems.filter(item => item.categoryId === selectedCategoryId).length
-    : 0;
+
+  const openDeleteDialog = (category: any) => {
+    setSelectedCategory(category);
+    setIsDeleteCategoryOpen(true);
+  };
 
   return (
     <DashboardLayout title="Menu Builder">
-      <div className="mb-6">
-        <p className="text-muted-foreground">
-          Create and manage your menu categories and items.
-        </p>
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg border">
+          <h2 className="text-lg font-semibold mb-4">Debug Info</h2>
+          <div className="space-y-2">
+            <p><strong>User ID:</strong> {cafeId || 'Not found'}</p>
+            <p><strong>Username:</strong> {user?.username || 'Not found'}</p>
+            <p><strong>Status:</strong> {user ? 'Authenticated' : 'Not authenticated'}</p>
+          </div>
+        </div>
+
+        {!shouldFetch ? (
+          <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+            <h2 className="text-lg font-semibold mb-4 text-red-800">Authentication Required</h2>
+            <p className="text-red-600">Please log in to access menu builder.</p>
+          </div>
+        ) : (
+          <>
+            {/* Categories Section */}
+            <div className="bg-white p-6 rounded-lg border">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">
+                  Categories {categoriesLoading ? '(Loading...)' : `(${categories?.length || 0})`}
+                </h2>
+                <Button onClick={() => setIsAddCategoryOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Category
+                </Button>
+              </div>
+              
+              {categoriesError ? (
+                <div className="text-red-600 p-4 bg-red-50 rounded">
+                  <strong>Error:</strong> {categoriesError}
+                </div>
+              ) : categoriesLoading ? (
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : categories?.length === 0 ? (
+                <p className="text-gray-500">No categories found. Create your first category!</p>
+              ) : (
+                <div className="space-y-2">
+                  {categories?.map(category => (
+                    <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{category.name}</h3>
+                        <p className="text-sm text-gray-500">ID: {category.id}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => openEditDialog(category)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => openDeleteDialog(category)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Menu Items Section (simplified for now) */}
+            <div className="bg-white p-6 rounded-lg border">
+              <h2 className="text-lg font-semibold mb-4">
+                Menu Items {itemsLoading ? '(Loading...)' : `(${menuItems?.length || 0})`}
+              </h2>
+              
+              {itemsError ? (
+                <div className="text-red-600 p-4 bg-red-50 rounded">
+                  <strong>Error:</strong> {itemsError}
+                </div>
+              ) : itemsLoading ? (
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : menuItems?.length === 0 ? (
+                <p className="text-gray-500">No menu items found.</p>
+              ) : (
+                <div className="space-y-2">
+                  {menuItems?.slice(0, 3).map(item => (
+                    <div key={item.id} className="p-3 border rounded-lg">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-sm text-gray-500">
+                        Category: {item.categoryId} | Price: ${item.price}
+                      </p>
+                    </div>
+                  ))}
+                  {menuItems?.length > 3 && (
+                    <p className="text-sm text-gray-500">... and {menuItems.length - 3} more items</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Add Category Dialog */}
+        <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Category</DialogTitle>
+              <DialogDescription>Create a new menu category.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="category-name">Category Name</Label>
+                <Input
+                  id="category-name"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="Enter category name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddCategory} disabled={!categoryName.trim()}>
+                Add Category
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Category Dialog */}
+        <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Category</DialogTitle>
+              <DialogDescription>Update the category name.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-category-name">Category Name</Label>
+                <Input
+                  id="edit-category-name"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="Enter category name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditCategoryOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditCategory} disabled={!categoryName.trim()}>
+                Update Category
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Category Dialog */}
+        <Dialog open={isDeleteCategoryOpen} onOpenChange={setIsDeleteCategoryOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Category</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this category? All menu items in this category will also be deleted.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <p><strong>Category:</strong> {selectedCategory?.name}</p>
+              <p className="text-sm text-red-600 mt-2">This action cannot be undone.</p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteCategoryOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteCategory}>
+                Delete Category
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Categories sidebar */}
-        <CategoryList
-          categories={categories}
-          selectedCategoryId={selectedCategoryId}
-          setSelectedCategoryId={setSelectedCategoryId}
-          onAddCategory={() => setIsAddCategoryDialogOpen(true)}
-          onEditCategory={openEditCategoryDialog}
-          onDeleteCategory={openDeleteCategoryDialog}
-        />
-
-        {/* Menu items content */}
-        <MenuItemList
-          title={currentCategoryName || "Menu Items"}
-          menuItems={menuItems}
-          selectedCategoryId={selectedCategoryId}
-          onAddItem={() => setIsAddMenuItemDialogOpen(true)}
-          onEditItem={openEditMenuItemDialog}
-          onDeleteItem={openDeleteMenuItemDialog}
-        />
-      </div>
-
-      {/* Category Dialogs */}
-      <AddCategoryDialog
-        isOpen={isAddCategoryDialogOpen}
-        onOpenChange={setIsAddCategoryDialogOpen}
-        onAddCategory={handleAddCategory}
-      />
-
-      <EditCategoryDialog
-        isOpen={isEditCategoryDialogOpen}
-        onOpenChange={setIsEditCategoryDialogOpen}
-        onUpdateCategory={handleUpdateCategory}
-        categoryName={currentCategoryName}
-      />
-
-      <DeleteCategoryDialog
-        isOpen={isDeleteCategoryDialogOpen}
-        onOpenChange={setIsDeleteCategoryDialogOpen}
-        onDeleteCategory={handleDeleteCategory}
-        categoryName={currentCategoryName}
-        itemCount={selectedCategoryItemCount}
-      />
-
-      {/* Menu Item Dialogs */}
-      <AddMenuItemDialog
-        isOpen={isAddMenuItemDialogOpen}
-        onOpenChange={setIsAddMenuItemDialogOpen}
-        onAddMenuItem={handleAddMenuItem}
-        categoryName={currentCategoryName}
-      />
-
-      <EditMenuItemDialog
-        isOpen={isEditMenuItemDialogOpen}
-        onOpenChange={setIsEditMenuItemDialogOpen}
-        onUpdateMenuItem={handleUpdateMenuItem}
-        menuItem={selectedMenuItem}
-      />
-
-      <DeleteMenuItemDialog
-        isOpen={isDeleteMenuItemDialogOpen}
-        onOpenChange={setIsDeleteMenuItemDialogOpen}
-        onDeleteMenuItem={handleDeleteMenuItem}
-        menuItem={selectedMenuItem}
-      />
     </DashboardLayout>
   );
 };
