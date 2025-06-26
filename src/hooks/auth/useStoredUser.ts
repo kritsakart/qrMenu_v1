@@ -58,8 +58,15 @@ export const getStoredUser = (): AppUser | null => {
     console.log("✅ getStoredUser: Valid user data loaded:", {
       id: userData.id,
       username: userData.username,
+      email: userData.email,
       role: userData.role,
       isMockUser: isMockUser,
+      checks: {
+        idStartsWithAdmin: userData.id.startsWith('admin-'),
+        idStartsWithCafe: userData.id.startsWith('cafe-'),
+        emailIncludesMock: userData.email?.includes('@mock.com'),
+        usernameIncludesMock: userData.username?.includes('mock')
+      },
       timestamp: new Date().toISOString()
     });
     

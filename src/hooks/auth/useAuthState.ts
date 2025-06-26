@@ -15,12 +15,26 @@ export const useAuthState = () => {
   // Helper function to check if user is a mock/local user
   const isMockUser = (user: AppUser | null): boolean => {
     if (!user) return false;
-    return (
-      user.id.startsWith('admin-') || 
-      user.id.startsWith('cafe-') ||
-      user.email?.includes('@mock.com') ||
-      user.username?.includes('mock')
-    );
+    
+    console.log("🔍 isMockUser check:", {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      idStartsWithAdmin: user.id.startsWith('admin-'),
+      idStartsWithCafe: user.id.startsWith('cafe-'),
+      emailIncludesMock: user.email?.includes('@mock.com'),
+      usernameIncludesMock: user.username?.includes('mock')
+    });
+    
+    const isSpecialPrefix = user.id.startsWith('admin-') || user.id.startsWith('cafe-');
+    const isMockEmail = user.email?.includes('@mock.com');
+    const isMockUsername = user.username?.includes('mock');
+    
+    const result = isSpecialPrefix || isMockEmail || isMockUsername;
+    
+    console.log("🔍 isMockUser result:", result, "for user:", user.id);
+    
+    return result;
   };
 
   // Initialize auth state from storage on component mount
