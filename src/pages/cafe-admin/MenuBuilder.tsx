@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Trash, Plus, GripVertical } from "lucide-react";
+import { Edit, Trash, Plus, GripVertical, ChevronDown } from "lucide-react";
 
 // DnD Kit imports
 import {
@@ -36,10 +36,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable Category Item Component
-const SortableCategoryItem = ({ category, onEdit, onDelete }: {
+const SortableCategoryItem = ({ category, onEdit, onDelete, isSelected, onSelect }: {
   category: any;
   onEdit: (category: any) => void;
   onDelete: (category: any) => void;
+  isSelected: boolean;
+  onSelect: (category: any) => void;
 }) => {
   const {
     attributes,
@@ -60,20 +62,28 @@ const SortableCategoryItem = ({ category, onEdit, onDelete }: {
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3 border rounded-lg bg-white ${
+      className={`flex items-center justify-between p-3 border rounded-lg transition-colors cursor-pointer ${
         isDragging ? 'shadow-lg' : ''
+      } ${
+        isSelected 
+          ? 'bg-blue-50 border-blue-300 shadow-sm' 
+          : 'bg-white hover:bg-gray-50'
       }`}
+      onClick={() => onSelect(category)}
     >
       <div className="flex items-center space-x-3">
         <div
           {...attributes}
           {...listeners}
           className="cursor-grab hover:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+          onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </div>
         <div>
-          <h3 className="font-medium">{category.name}</h3>
+          <h3 className={`font-medium ${isSelected ? 'text-blue-700' : ''}`}>
+            {category.name}
+          </h3>
           <p className="text-sm text-gray-500">Order: {category.order || 'No order'}</p>
         </div>
       </div>
@@ -81,14 +91,20 @@ const SortableCategoryItem = ({ category, onEdit, onDelete }: {
         <Button 
           size="sm" 
           variant="outline"
-          onClick={() => onEdit(category)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(category);
+          }}
         >
           <Edit className="h-4 w-4" />
         </Button>
         <Button 
           size="sm" 
           variant="destructive"
-          onClick={() => onDelete(category)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(category);
+          }}
         >
           <Trash className="h-4 w-4" />
         </Button>
@@ -110,6 +126,12 @@ const MenuBuilder = () => {
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [categoryName, setCategoryName] = useState("");
+  
+  // State for active category selection
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+
+  // State for debug panel
+  const [isDebugExpanded, setIsDebugExpanded] = useState(false);
 
   // Local state for optimistic updates
   const [localCategories, setLocalCategories] = useState<any[]>([]);
@@ -172,6 +194,16 @@ const MenuBuilder = () => {
     const orderB = b.order || 999;
     return orderA - orderB;
   }) : [];
+
+  // Filter menu items by active category
+  const filteredMenuItems = activeCategoryId 
+    ? menuItems?.filter(item => item.categoryId === activeCategoryId) || []
+    : menuItems || [];
+
+  // Handler for category selection
+  const handleCategorySelect = (category: any) => {
+    setActiveCategoryId(category.id === activeCategoryId ? null : category.id);
+  };
 
   // Drag and Drop handler - PURE optimistic updates
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -320,15 +352,33 @@ const MenuBuilder = () => {
     <DashboardLayout title="Menu Builder">
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-lg border">
-          <h2 className="text-lg font-semibold mb-4">Debug Info</h2>
-          <div className="space-y-2">
-            <p><strong>User ID:</strong> {cafeId || 'Not found'}</p>
-            <p><strong>Username:</strong> {user?.username || 'Not found'}</p>
-            <p><strong>Status:</strong> {user ? 'Authenticated' : 'Not authenticated'}</p>
-            <p><strong>Is Reordering:</strong> {isReordering ? 'Yes' : 'No'}</p>
-            <p><strong>Has Initialized:</strong> {hasInitialized ? 'Yes' : 'No'}</p>
-            <p><strong>Using Local State:</strong> Yes (No server sync on drag)</p>
+          <div 
+            className="flex justify-between items-center cursor-pointer"
+            onClick={() => setIsDebugExpanded(!isDebugExpanded)}
+          >
+            <h2 className="text-lg font-semibold">Debug Info</h2>
+            <ChevronDown 
+              className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${
+                isDebugExpanded ? 'transform rotate-180' : ''
+              }`}
+            />
           </div>
+          
+          {isDebugExpanded && (
+            <div className="space-y-2 mt-4">
+              <p><strong>User ID:</strong> {cafeId || 'Not found'}</p>
+              <p><strong>Username:</strong> {user?.username || 'Not found'}</p>
+              <p><strong>Status:</strong> {user ? 'Authenticated' : 'Not authenticated'}</p>
+              <p><strong>Is Reordering:</strong> {isReordering ? 'Yes' : 'No'}</p>
+              <p><strong>Has Initialized:</strong> {hasInitialized ? 'Yes' : 'No'}</p>
+              <p><strong>Using Local State:</strong> Yes (No server sync on drag)</p>
+              <p><strong>Active Category:</strong> {activeCategoryId ? 
+                `${sortedCategories.find(c => c.id === activeCategoryId)?.name || 'Unknown'} (${activeCategoryId})` : 
+                'None'
+              }</p>
+              <p><strong>Filtered Items:</strong> {filteredMenuItems?.length || 0} / {menuItems?.length || 0}</p>
+            </div>
+          )}
         </div>
 
         {!shouldFetch ? (
@@ -338,89 +388,114 @@ const MenuBuilder = () => {
           </div>
         ) : (
           <>
-            {/* Categories Section with Drag & Drop */}
-            <div className="bg-white p-6 rounded-lg border">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">
-                  Categories {categoriesLoading && !hasInitialized ? '(Loading...)' : `(${localCategories?.length || 0})`}
-                  {isReordering && <span className="text-blue-600 ml-2">(Updating...)</span>}
-                </h2>
-                <Button onClick={() => setIsAddCategoryOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
-                </Button>
-              </div>
-              
-              {categoriesError ? (
-                <div className="text-red-600 p-4 bg-red-50 rounded">
-                  <strong>Error:</strong> {categoriesError}
+            {/* Main content with two columns */}
+            <div className="flex gap-6">
+              {/* Categories Section with Drag & Drop - 35% width */}
+              <div className="w-[35%] bg-white p-6 rounded-lg border">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    Categories {categoriesLoading && !hasInitialized ? '(Loading...)' : `(${localCategories?.length || 0})`}
+                    {isReordering && <span className="text-blue-600 ml-2">(Updating...)</span>}
+                  </h2>
+                  <Button onClick={() => setIsAddCategoryOpen(true)} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
                 </div>
-              ) : (categoriesLoading && !hasInitialized) ? (
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-              ) : sortedCategories?.length === 0 ? (
-                <p className="text-gray-500">No categories found. Create your first category!</p>
-              ) : (
-                <DndContext 
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext 
-                    items={sortedCategories.map(c => c.id)}
-                    strategy={verticalListSortingStrategy}
+                
+                {categoriesError ? (
+                  <div className="text-red-600 p-4 bg-red-50 rounded">
+                    <strong>Error:</strong> {categoriesError}
+                  </div>
+                ) : (categoriesLoading && !hasInitialized) ? (
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ) : sortedCategories?.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No categories found. Create your first category!</p>
+                ) : (
+                  <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
                   >
-                    <div className="space-y-2">
-                      {sortedCategories.map(category => (
-                        <SortableCategoryItem
-                          key={category.id}
-                          category={category}
-                          onEdit={openEditDialog}
-                          onDelete={openDeleteDialog}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              )}
-            </div>
+                    <SortableContext 
+                      items={sortedCategories.map(c => c.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {sortedCategories.map(category => (
+                          <SortableCategoryItem
+                            key={category.id}
+                            category={category}
+                            onEdit={openEditDialog}
+                            onDelete={openDeleteDialog}
+                            isSelected={category.id === activeCategoryId}
+                            onSelect={handleCategorySelect}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
 
-            {/* Menu Items Section (simplified for now) */}
-            <div className="bg-white p-6 rounded-lg border">
-              <h2 className="text-lg font-semibold mb-4">
-                Menu Items {itemsLoading ? '(Loading...)' : `(${menuItems?.length || 0})`}
-              </h2>
-              
-              {itemsError ? (
-                <div className="text-red-600 p-4 bg-red-50 rounded">
-                  <strong>Error:</strong> {itemsError}
-                </div>
-              ) : itemsLoading ? (
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-              ) : menuItems?.length === 0 ? (
-                <p className="text-gray-500">No menu items found.</p>
-              ) : (
-                <div className="space-y-2">
-                  {menuItems?.slice(0, 3).map(item => (
-                    <div key={item.id} className="p-3 border rounded-lg">
-                      <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        Category: {item.categoryId} | Price: ${item.price}
+              {/* Menu Items Section - 65% width */}
+              <div className="flex-1 bg-white p-6 rounded-lg border">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-lg font-semibold">
+                      Menu Items {itemsLoading ? '(Loading...)' : `(${filteredMenuItems?.length || 0})`}
+                    </h2>
+                    {activeCategoryId && (
+                      <p className="text-sm text-blue-600 mt-1">
+                        Showing items from: {sortedCategories.find(c => c.id === activeCategoryId)?.name || 'Unknown'}
+                        <button 
+                          onClick={() => setActiveCategoryId(null)}
+                          className="ml-2 text-gray-500 hover:text-gray-700"
+                        >
+                          (show all)
+                        </button>
                       </p>
-                    </div>
-                  ))}
-                  {menuItems?.length > 3 && (
-                    <p className="text-sm text-gray-500">... and {menuItems.length - 3} more items</p>
-                  )}
+                    )}
+                  </div>
                 </div>
-              )}
+                
+                {itemsError ? (
+                  <div className="text-red-600 p-4 bg-red-50 rounded">
+                    <strong>Error:</strong> {itemsError}
+                  </div>
+                ) : itemsLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ) : filteredMenuItems?.length === 0 ? (
+                  <p className="text-gray-500">
+                    {activeCategoryId 
+                      ? 'No menu items found in this category.' 
+                      : 'No menu items found.'
+                    }
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredMenuItems?.map(item => (
+                      <div key={item.id} className="p-3 border rounded-lg">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-gray-500">
+                          Category: {sortedCategories.find(c => c.id === item.categoryId)?.name || item.categoryId} | Price: ${item.price}
+                        </p>
+                        {item.description && (
+                          <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
