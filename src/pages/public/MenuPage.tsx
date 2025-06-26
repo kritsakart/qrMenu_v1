@@ -48,10 +48,19 @@ const MenuItemImage = ({ imageUrl, itemName, size = "md" }: {
 };
 
 const MenuPage = () => {
-  const { locationShortId, tableShortId } = useParams<{ locationShortId: string, tableShortId: string }>();
+  const { locationShortId, tableShortId, shortId } = useParams<{ 
+    locationShortId?: string, 
+    tableShortId?: string,
+    shortId?: string 
+  }>();
   const { toast } = useToast();
   
-  console.log("🔍 PUBLIC MENU PAGE: locationShortId:", locationShortId, "tableShortId:", tableShortId);
+  // Handle both URL formats: old (/:locationShortId/:tableShortId) and new (/:shortId)
+  const finalLocationShortId = locationShortId || shortId;
+  const finalTableShortId = tableShortId;
+  
+  console.log("🔍 PUBLIC MENU PAGE: URL params:", { locationShortId, tableShortId, shortId });
+  console.log("🔍 PUBLIC MENU PAGE: Final params:", { finalLocationShortId, finalTableShortId });
   
   const {
     location,
@@ -61,7 +70,7 @@ const MenuPage = () => {
     isLoading,
     error,
     allLocations
-  } = usePublicMenu(locationShortId || "", tableShortId || "");
+  } = usePublicMenu(finalLocationShortId || "", finalTableShortId || "");
   
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<OrderItem[]>([]);

@@ -6,9 +6,14 @@ import { usePublicMenu } from '@/hooks/usePublicMenu';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function BrandingPage() {
-  const { locationShortId, tableShortId } = useParams();
+  const { locationShortId, tableShortId, shortId } = useParams();
   const navigate = useNavigate();
-  const { location, table, isLoading, error } = usePublicMenu(locationShortId, tableShortId);
+  
+  // Handle both URL formats: old (/:locationShortId/:tableShortId) and new (/:shortId)
+  const finalLocationShortId = locationShortId || shortId;
+  const finalTableShortId = tableShortId;
+  
+  const { location, table, isLoading, error } = usePublicMenu(finalLocationShortId, finalTableShortId);
   
   const [currentSlide, setCurrentSlide] = useState(0);
   
@@ -17,6 +22,8 @@ export default function BrandingPage() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Додаємо консольний лог для діагностики
+  console.log('🖼️ BRANDING PAGE: URL params:', { locationShortId, tableShortId, shortId });
+  console.log('🖼️ BRANDING PAGE: Final params:', { finalLocationShortId, finalTableShortId });
   console.log('🖼️ BRANDING PAGE: Location data:', location);
   console.log('🖼️ BRANDING PAGE: Logo image:', location?.logoImage);
 
@@ -32,7 +39,17 @@ export default function BrandingPage() {
   }, [location?.promoImages]);
 
   const handleGoToMenu = () => {
-    navigate(`/menu/${locationShortId}/${tableShortId}`);
+    // Use the same URL format as the current page
+    if (locationShortId && tableShortId) {
+      // Old format: /menu/:locationShortId/:tableShortId
+      navigate(`/menu/${locationShortId}/${tableShortId}`);
+    } else if (shortId) {
+      // New format: /menu/:shortId
+      navigate(`/menu/${shortId}`);
+    } else {
+      // Fallback
+      navigate(`/menu/${finalLocationShortId}/${finalTableShortId || ''}`);
+    }
   };
 
   if (isLoading) {

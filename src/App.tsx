@@ -5,8 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 // Pages
 import LoginPage from "@/pages/auth/LoginPage";
@@ -35,34 +34,6 @@ const App = () => {
     },
   }));
 
-  // Ensuring Supabase auth state change listener is properly configured
-  useEffect(() => {
-    console.log("🚀 Setting up Supabase auth state listener in App.tsx");
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("🔄 App.tsx - Supabase auth state changed:", event, session?.user?.id || 'no session');
-        
-        // Не втручаємося в логіку, просто логуємо для діагностики
-        // Вся логіка обробки сесій повинна бути в useAuthState
-        if (event === 'SIGNED_OUT') {
-          console.log("🚪 User signed out in App.tsx");
-        } else if (event === 'SIGNED_IN') {
-          console.log("🔑 User signed in in App.tsx");
-        } else if (event === 'TOKEN_REFRESHED') {
-          console.log("🔄 Token refreshed in App.tsx");
-        } else if (event === 'INITIAL_SESSION') {
-          console.log("🎯 Initial session loaded in App.tsx");
-        }
-      }
-    );
-
-    return () => {
-      console.log("🧹 Cleaning up Supabase auth listener in App.tsx");
-      subscription.unsubscribe();
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -71,8 +42,16 @@ const App = () => {
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<LoginPage />} />
+              
+              {/* QR Code routes with two parameters (for existing QR codes) */}
+              <Route path="/:locationShortId/:tableShortId" element={<BrandingPage />} />
+              <Route path="/menu/:locationShortId/:tableShortId" element={<MenuPage />} />
+              
+              {/* Single parameter routes (for new format) */}
               <Route path="/branding/:shortId" element={<BrandingPage />} />
               <Route path="/menu/:shortId" element={<MenuPage />} />
+              
+              {/* Admin routes */}
               <Route path="/admin/menu/:locationId" element={<MenuPageAdmin />} />
               
               {/* Protected routes */}

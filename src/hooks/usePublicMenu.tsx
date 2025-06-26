@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MenuCategory, MenuItem, Location, Table, MenuItemVariant } from "@/types/models";
 import { supabase } from "@/integrations/supabase/client";
 
-export const usePublicMenu = (locationShortId: string, tableShortId: string) => {
+export const usePublicMenu = (locationShortId: string, tableShortId?: string) => {
   const [location, setLocation] = useState<Location | null>(null);
   const [table, setTable] = useState<Table | null>(null);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -11,7 +11,7 @@ export const usePublicMenu = (locationShortId: string, tableShortId: string) => 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
-  const [allLocations, setAllLocations] = useState<any[]>([]);
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
 
   // Add cache-busting mechanism
   useEffect(() => {
@@ -153,8 +153,8 @@ export const usePublicMenu = (locationShortId: string, tableShortId: string) => 
 
   useEffect(() => {
     const fetchMenuData = async () => {
-      if (!locationShortId || !tableShortId) {
-        // console.log("🔍 PUBLIC MENU: Missing locationShortId or tableShortId:", { locationShortId, tableShortId });
+      if (!locationShortId) {
+        // console.log("🔍 PUBLIC MENU: Missing locationShortId:", { locationShortId, tableShortId });
         setIsLoading(false);
         return;
       }
@@ -220,63 +220,65 @@ export const usePublicMenu = (locationShortId: string, tableShortId: string) => 
           createdAt: locationData.created_at
         });
 
-        // Try to fetch table by short_id first, then fallback to UUID
+        // Try to fetch table by short_id first, then fallback to UUID (optional for new format)
         let tableData = null;
         let tableError = null;
         
-        // First try with short_id
-        const tableShortIdResult = await supabase
-          .from('tables')
-          .select('*')
-          .eq('short_id', tableShortId)
-          .eq('location_id', locationData.id)
-          .maybeSingle();
-          
-        if (tableShortIdResult.data) {
-          tableData = tableShortIdResult.data;
-        } else {
-          // Fallback to UUID search
-          console.log("🔍 PUBLIC MENU: Table short ID not found, trying UUID:", tableShortId);
-          const tableUuidResult = await supabase
+        if (tableShortId) {
+          // First try with short_id
+          const tableShortIdResult = await supabase
             .from('tables')
             .select('*')
-            .eq('id', tableShortId)
+            .eq('short_id', tableShortId)
             .eq('location_id', locationData.id)
             .maybeSingle();
             
-          tableData = tableUuidResult.data;
-          tableError = tableUuidResult.error;
+          if (tableShortIdResult.data) {
+            tableData = tableShortIdResult.data;
+          } else {
+            // Fallback to UUID search
+            console.log("🔍 PUBLIC MENU: Table short ID not found, trying UUID:", tableShortId);
+            const tableUuidResult = await supabase
+              .from('tables')
+              .select('*')
+              .eq('id', tableShortId)
+              .eq('location_id', locationData.id)
+              .maybeSingle();
+              
+            tableData = tableUuidResult.data;
+            tableError = tableUuidResult.error;
+          }
+          
+          // console.log("🔍 PUBLIC MENU: Table lookup result:", tableData);
+          if (tableError) {
+            // console.error("❌ PUBLIC MENU: Error fetching table:", tableError);
+          }
+
+          const matchingTable = tableData;
+
+          // console.log("🔍 PUBLIC MENU: Found matching table:", matchingTable);
+
+          if (!matchingTable) {
+            // For backward compatibility, we require table for old format URLs
+            console.error("❌ PUBLIC MENU: Table not found for ID:", tableShortId, "in location:", locationData.id);
+            throw new Error(`Table not found. The QR code may be outdated or damaged.`);
+          }
+
+          // console.log("✅ PUBLIC MENU: Table found:", matchingTable);
+          setTable({
+            id: matchingTable.id,
+            locationId: matchingTable.location_id,
+            name: matchingTable.name,
+            qrCode: matchingTable.qr_code,
+            qrCodeUrl: matchingTable.qr_code_url,
+            shortId: matchingTable.short_id,
+            createdAt: matchingTable.created_at
+          });
+        } else {
+          // No table specified (new format) - this is OK for branding page
+          console.log("🔍 PUBLIC MENU: No table specified (new format)");
+          setTable(null);
         }
-        
-        // console.log("🔍 PUBLIC MENU: Table lookup result:", tableData);
-        if (tableError) {
-          // console.error("❌ PUBLIC MENU: Error fetching table:", tableError);
-        }
-
-        const matchingTable = tableData;
-
-        // console.log("🔍 PUBLIC MENU: Found matching table:", matchingTable);
-
-        if (!matchingTable) {
-          // console.error("❌ PUBLIC MENU: Table not found for ID:", tableId, "in location:", locationId);
-          // console.log("🔍 PUBLIC MENU: Available tables with their IDs:", allTables?.map(t => ({ 
-          //   name: t.name, 
-          //   id: t.id,
-          //   qr_code_url: t.qr_code_url
-          // })));
-          throw new Error(`Table not found. The QR code may be outdated or damaged.`);
-        }
-
-        // console.log("✅ PUBLIC MENU: Table found:", matchingTable);
-        setTable({
-          id: matchingTable.id,
-          locationId: matchingTable.location_id,
-          name: matchingTable.name,
-          qrCode: matchingTable.qr_code,
-          qrCodeUrl: matchingTable.qr_code_url,
-          shortId: matchingTable.short_id,
-          createdAt: matchingTable.created_at
-        });
 
         // Fetch menu categories for this cafe with cache busting
         const { data: categoriesData, error: categoriesError } = await supabase
