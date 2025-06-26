@@ -23,6 +23,8 @@ import NotFound from "@/pages/NotFound";
 import CafeOwnersTable from "@/pages/CafeOwnersTable";
 
 const App = () => {
+  console.log("🏢 App component: Starting render...", new Date().toISOString());
+  
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -33,6 +35,8 @@ const App = () => {
       },
     },
   }));
+
+  console.log("🏢 App component: About to return JSX...");
 
   return (
     <QueryClientProvider client={queryClient}>

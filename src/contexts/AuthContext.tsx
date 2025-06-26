@@ -1,15 +1,32 @@
+import React, { createContext, useContext, ReactNode } from "react";
+import { AppUser } from "@/types/auth";
+import { useAuthState } from "@/hooks/auth/useAuthState";
 
-import { createContext, useContext } from "react";
-import { useAuthManager } from "@/hooks/useAuthManager";
-import { AuthContextType, AuthProviderProps } from "@/types/auth";
+interface AuthContextType {
+  user: AppUser | null;
+  setUser: (user: AppUser | null) => void;
+  isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
+  isAuthenticated: boolean;
+  isSuperAdmin: boolean;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const auth = useAuthManager();
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  console.log("🏗️ AuthProvider: Initializing...");
+  
+  const authState = useAuthState();
+  
+  console.log("🏗️ AuthProvider: Auth state:", {
+    hasUser: !!authState.user,
+    userId: authState.user?.id,
+    isLoading: authState.isLoading,
+    timestamp: new Date().toISOString()
+  });
 
   return (
-    <AuthContext.Provider value={auth}>
+    <AuthContext.Provider value={authState}>
       {children}
     </AuthContext.Provider>
   );

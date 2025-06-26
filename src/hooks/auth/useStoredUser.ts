@@ -2,6 +2,17 @@ import { AppUser } from "@/types/auth";
 
 const USER_STORAGE_KEY = "food-list-user";
 
+// Test localStorage availability
+(() => {
+  try {
+    localStorage.setItem('test', 'test');
+    localStorage.removeItem('test');
+    console.log("✅ localStorage is available");
+  } catch (e) {
+    console.error("❌ localStorage is NOT available:", e);
+  }
+})();
+
 /**
  * Validates if the user data has all required fields
  */

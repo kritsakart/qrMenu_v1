@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
  * Hook for managing authentication state
  */
 export const useAuthState = () => {
+  console.log("🎯 useAuthState: Hook called!", new Date().toISOString());
+  
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
