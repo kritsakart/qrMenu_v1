@@ -26,13 +26,17 @@ export const useAuthState = () => {
       usernameIncludesMock: user.username?.includes('mock')
     });
     
+    // ТІЛЬКИ користувачі з ID що починаються з 'admin-' або 'cafe-' є справжніми mock користувачами
+    // Email @mock.com може бути у справжніх користувачів бази даних для демо цілей
     const isSpecialPrefix = user.id.startsWith('admin-') || user.id.startsWith('cafe-');
-    const isMockEmail = user.email?.includes('@mock.com');
     const isMockUsername = user.username?.includes('mock');
     
-    const result = isSpecialPrefix || isMockEmail || isMockUsername;
+    // Не використовуємо email як критерій для mock користувачів
+    const result = isSpecialPrefix || isMockUsername;
     
-    console.log("🔍 isMockUser result:", result, "for user:", user.id);
+    console.log("🔍 isMockUser result:", result, "for user:", user.id, 
+                "reason:", isSpecialPrefix ? "special ID prefix" : 
+                          isMockUsername ? "mock username" : "not mock user");
     
     return result;
   };

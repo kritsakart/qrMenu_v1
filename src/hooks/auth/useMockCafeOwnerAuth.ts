@@ -36,7 +36,7 @@ export const handleMockCafeOwnerLogin = (username: string): AppUser | null => {
       username: cafeOwner.username,
       role: "cafe_owner",
       cafeId: cafeOwner.id,
-      email: `${cafeOwner.username}@mock.com`,
+      email: `${cafeOwner.username}@mock.com`, // Автоматично генерований email для mock користувачів
     };
 
     setStoredUser(userData);

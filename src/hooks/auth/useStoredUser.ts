@@ -50,9 +50,9 @@ export const getStoredUser = (): AppUser | null => {
     }
     
     // Додаткова перевірка для mock користувачів
+    // ТІЛЬКИ користувачі з ID що починаються з 'admin-' або 'cafe-' є справжніми mock користувачами
     const isMockUser = userData.id.startsWith('admin-') || 
                       userData.id.startsWith('cafe-') ||
-                      userData.email?.includes('@mock.com') ||
                       userData.username?.includes('mock');
     
     console.log("✅ getStoredUser: Valid user data loaded:", {
@@ -64,8 +64,8 @@ export const getStoredUser = (): AppUser | null => {
       checks: {
         idStartsWithAdmin: userData.id.startsWith('admin-'),
         idStartsWithCafe: userData.id.startsWith('cafe-'),
-        emailIncludesMock: userData.email?.includes('@mock.com'),
-        usernameIncludesMock: userData.username?.includes('mock')
+        usernameIncludesMock: userData.username?.includes('mock'),
+        note: "Email @mock.com НЕ є критерієм для mock користувачів"
       },
       timestamp: new Date().toISOString()
     });
@@ -88,9 +88,9 @@ export const setStoredUser = (user: AppUser) => {
       return;
     }
     
+    // ТІЛЬКИ користувачі з ID що починаються з 'admin-' або 'cafe-' є справжніми mock користувачами
     const isMockUser = user.id.startsWith('admin-') || 
                       user.id.startsWith('cafe-') ||
-                      user.email?.includes('@mock.com') ||
                       user.username?.includes('mock');
     
     const userString = JSON.stringify(user);
