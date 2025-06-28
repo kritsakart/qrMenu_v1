@@ -7,12 +7,14 @@ import { useAddMenuCategory } from "@/hooks/menu-categories/useAddMenuCategory";
 import { useUpdateMenuCategory } from "@/hooks/menu-categories/useUpdateMenuCategory";
 import { useDeleteMenuCategory } from "@/hooks/menu-categories/useDeleteMenuCategory";
 import { useUpdateMenuCategoryOrder } from "@/hooks/menu-categories/useUpdateMenuCategoryOrder";
+import { useUpdateMenuItemOrder, useUpdateMultipleMenuItemsOrder } from "@/hooks/menu/useUpdateMenuItemOrder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Edit, Trash, Plus, GripVertical, ChevronDown } from "lucide-react";
+import { supabaseAdmin } from "@/integrations/supabase/admin-client";
 
 // DnD Kit imports
 import {
@@ -113,6 +115,82 @@ const SortableCategoryItem = ({ category, onEdit, onDelete, isSelected, onSelect
   );
 };
 
+// Sortable Menu Item Component
+const SortableMenuItem = ({ item, onEdit, onDelete, categoryName }: {
+  item: any;
+  onEdit: (item: any) => void;
+  onDelete: (item: any) => void;
+  categoryName: string;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.8 : 1,
+    zIndex: isDragging ? 1000 : 1,
+    position: (isDragging ? 'relative' : undefined) as 'relative' | undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`menu-item-stable flex items-center justify-between p-4 border rounded-lg min-h-[80px] transition-all duration-200 ${
+        isDragging 
+          ? 'shadow-2xl bg-white border-blue-300 scale-[1.02]' 
+          : 'bg-white hover:bg-gray-50 hover:shadow-md'
+      }`}
+    >
+      <div className="flex items-center space-x-3 flex-1 min-w-0">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab hover:cursor-grabbing p-2 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+        >
+          <GripVertical className="h-5 w-5 text-gray-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-gray-900 truncate">{item.name}</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Category: {categoryName} | Price: ${item.price}
+          </p>
+          {item.description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.description}</p>
+          )}
+        </div>
+      </div>
+      <div className="flex space-x-2 flex-shrink-0 ml-4">
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => onEdit(item)}
+          className="transition-colors"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button 
+          size="sm" 
+          variant="destructive"
+          onClick={() => onDelete(item)}
+          className="transition-colors"
+        >
+          <Trash className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+import { EditMenuItemDialog } from "@/components/menu-builder/dialogs/EditMenuItemDialog";
+
 const MenuBuilder = () => {
   console.log('[DEBUG] MenuBuilder: Component rendering...');
   
@@ -138,6 +216,14 @@ const MenuBuilder = () => {
   const [isReordering, setIsReordering] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  // Local state for menu items drag & drop
+  const [localMenuItems, setLocalMenuItems] = useState<any[]>([]);
+  const [hasMenuItemsInitialized, setHasMenuItemsInitialized] = useState(false);
+
+  // State for EditMenuItemDialog
+  const [isEditMenuItemOpen, setIsEditMenuItemOpen] = useState(false);
+  const [editingMenuItem, setEditingMenuItem] = useState(null);
+
   // Data fetching
   const shouldFetch = Boolean(cafeId);
   
@@ -158,10 +244,16 @@ const MenuBuilder = () => {
   const { updateCategory } = useUpdateMenuCategory();
   const { deleteCategory } = useDeleteMenuCategory();
   const { reorderCategories } = useUpdateMenuCategoryOrder();
+  const updateMenuItemOrderMutation = useUpdateMenuItemOrder();
+  const updateMultipleMenuItemsOrderMutation = useUpdateMultipleMenuItemsOrder();
 
-  // Drag and Drop sensors
+  // Drag and Drop sensors with improved stability
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Requires 8px movement before starting drag
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -176,37 +268,59 @@ const MenuBuilder = () => {
     }
   }, [categories, hasInitialized]);
 
-  console.log('[DEBUG] MenuBuilder: fetch results =', {
-    categoriesCount: categories?.length || 0,
-    localCategoriesCount: localCategories?.length || 0,
-    menuItemsCount: menuItems?.length || 0,
-    categoriesLoading,
-    itemsLoading,
-    categoriesError,
-    itemsError,
-    isReordering,
-    hasInitialized
-  });
+  // Initialize local menu items only once from server data
+  useEffect(() => {
+    if (menuItems && menuItems.length > 0 && !hasMenuItemsInitialized) {
+      console.log('[DEBUG] Initial load - setting menu items from server:', menuItems);
+      setLocalMenuItems(menuItems);
+      setHasMenuItemsInitialized(true);
+    }
+  }, [menuItems, hasMenuItemsInitialized]);
 
   // Sort categories by order
   const sortedCategories = localCategories ? [...localCategories].sort((a, b) => {
-    const orderA = a.order || 999;
-    const orderB = b.order || 999;
+    const orderA = a.order !== undefined ? a.order : 9999;
+    const orderB = b.order !== undefined ? b.order : 9999;
     return orderA - orderB;
   }) : [];
 
   // Filter menu items by active category
   const filteredMenuItems = activeCategoryId 
-    ? menuItems?.filter(item => item.categoryId === activeCategoryId) || []
-    : menuItems || [];
+    ? localMenuItems?.filter(item => item.categoryId === activeCategoryId).sort((a, b) => {
+        const orderA = a.order !== undefined ? a.order : 9999;
+        const orderB = b.order !== undefined ? b.order : 9999;
+        return orderA - orderB;
+      }) || []
+    : localMenuItems?.sort((a, b) => {
+        const orderA = a.order !== undefined ? a.order : 9999;
+        const orderB = b.order !== undefined ? b.order : 9999;
+        return orderA - orderB;
+      }) || [];
 
   // Handler for category selection
   const handleCategorySelect = (category: any) => {
     setActiveCategoryId(category.id === activeCategoryId ? null : category.id);
   };
 
-  // Drag and Drop handler - PURE optimistic updates
-  const handleDragEnd = async (event: DragEndEvent) => {
+  console.log('[DEBUG] MenuBuilder: fetch results =', {
+    categoriesCount: categories?.length || 0,
+    localCategoriesCount: localCategories?.length || 0,
+    menuItemsCount: menuItems?.length || 0,
+    localMenuItemsCount: localMenuItems?.length || 0,
+    filteredMenuItemsCount: filteredMenuItems?.length || 0,
+    categoriesLoading,
+    itemsLoading,
+    categoriesError,
+    itemsError,
+    isReordering,
+    hasInitialized,
+    hasMenuItemsInitialized,
+    activeCategoryId,
+    filteredMenuItemsOrder: filteredMenuItems?.map(i => ({ id: i.id, name: i.name, order: i.order }))
+  });
+
+  // Handler for category selection
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
@@ -214,34 +328,115 @@ const MenuBuilder = () => {
       const newIndex = sortedCategories.findIndex((item) => item.id === over?.id);
 
       // Optimistically update the local state immediately
-      const reorderedCategories = arrayMove(sortedCategories, oldIndex, newIndex);
+      const reorderedItems = arrayMove(sortedCategories, oldIndex, newIndex);
       
       // Update order values for proper sorting
-      const categoriesWithNewOrder = reorderedCategories.map((category, index) => ({
-        ...category,
+      const itemsWithNewOrder = reorderedItems.map((item, index) => ({
+        ...item,
         order: index + 1
       }));
       
-      console.log('[DEBUG] Drag end - OPTIMISTIC UPDATE with new order values:', {
+      console.log('[DEBUG] Category drag end - OPTIMISTIC UPDATE:', {
         oldIndex,
         newIndex,
-        oldOrder: sortedCategories.map(c => ({ id: c.id, name: c.name, order: c.order })),
-        newOrder: categoriesWithNewOrder.map(c => ({ id: c.id, name: c.name, order: c.order }))
+        oldOrder: sortedCategories.map(i => ({ id: i.id, name: i.name, order: i.order })),
+        newOrder: itemsWithNewOrder.map(i => ({ id: i.id, name: i.name, order: i.order }))
       });
 
-      // Update local state immediately for smooth UX - NO SERVER SYNC
-      setLocalCategories(categoriesWithNewOrder);
+      // Update local state immediately for smooth UX
+      const updatedLocalItems = localCategories.map(item => {
+        const reorderedItem = itemsWithNewOrder.find(r => r.id === item.id);
+        return reorderedItem || item;
+      });
+      
+      setLocalCategories(updatedLocalItems);
       setIsReordering(true);
 
       // Update the order in the database silently in background
       try {
-        await reorderCategories(categoriesWithNewOrder);
-        console.log('[DEBUG] Database update successful (background)');
+        const updates = itemsWithNewOrder.map(item => ({
+          id: item.id,
+          order: item.order
+        }));
+        
+        reorderCategories(updates);
+        console.log('[DEBUG] Categories database update successful (background)');
       } catch (error) {
-        console.error('[DEBUG] Database update failed, but keeping optimistic state');
+        console.error('[DEBUG] Categories database update failed, but keeping optimistic state');
       } finally {
-        // Always keep the optimistic state regardless of server response
         setIsReordering(false);
+      }
+    }
+  };
+
+  // Handler for menu items drag & drop
+  const handleMenuItemDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id && activeCategoryId) {
+      // Використовуємо відсортовані filteredMenuItems замість необроблених localMenuItems
+      const currentItems = filteredMenuItems;
+      const oldIndex = currentItems.findIndex((item) => item.id === active.id);
+      const newIndex = currentItems.findIndex((item) => item.id === over?.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        console.log('[DEBUG] Menu Item drag end - START REORDER:', {
+          categoryId: activeCategoryId,
+          oldIndex,
+          newIndex,
+          itemName: currentItems[oldIndex]?.name,
+          currentItemsOrder: currentItems.map(i => ({ id: i.id, name: i.name, order: i.order }))
+        });
+
+        // Reorder items within the category
+        const reorderedItems = arrayMove(currentItems, oldIndex, newIndex);
+        
+        // Update order values with more predictable ordering
+        const itemsWithNewOrder = reorderedItems.map((item, index) => ({
+          ...item,
+          order: index + 1
+        }));
+
+        console.log('[DEBUG] Menu Item drag end - AFTER REORDER:', {
+          reorderedItemsOrder: itemsWithNewOrder.map(i => ({ id: i.id, name: i.name, order: i.order }))
+        });
+
+        // Update local state immediately for smooth UX
+        const updatedLocalItems = localMenuItems.map(item => {
+          if (item.categoryId === activeCategoryId) {
+            const reorderedItem = itemsWithNewOrder.find(r => r.id === item.id);
+            return reorderedItem || item;
+          }
+          return item;
+        });
+        
+        // Apply the update in a single setState call to avoid flickering
+        setLocalMenuItems(updatedLocalItems);
+
+        console.log('[DEBUG] Menu Item drag end - LOCAL STATE UPDATED:', {
+          newOrder: itemsWithNewOrder.map(i => ({ id: i.id, name: i.name, order: i.order })),
+          fullLocalState: updatedLocalItems.filter(i => i.categoryId === activeCategoryId).map(i => ({ id: i.id, name: i.name, order: i.order }))
+        });
+
+        // Update the order in the database silently in background
+        // Use the batch update mutation to avoid query invalidation conflicts
+        setTimeout(() => {
+          const updates = itemsWithNewOrder.map(item => ({
+            itemId: item.id,
+            newOrder: item.order,
+            categoryId: activeCategoryId
+          }));
+          
+          updateMultipleMenuItemsOrderMutation.mutate(updates, {
+            onError: (error) => {
+              console.warn('[DEBUG] Failed to update menu items order (batch):', error);
+              // Don't revert local state to maintain smooth UX
+            },
+            onSuccess: () => {
+              console.log('[DEBUG] Successfully updated menu items order (batch)');
+            }
+          });
+        }, 0);
       }
     }
   };
@@ -348,6 +543,52 @@ const MenuBuilder = () => {
     setIsDeleteCategoryOpen(true);
   };
 
+  // Function to open EditMenuItemDialog
+  const openEditMenuItemDialog = (item) => {
+    setEditingMenuItem(item);
+    setIsEditMenuItemOpen(true);
+  };
+
+  // Function to handle updating a menu item
+  const handleUpdateMenuItem = async (formData): Promise<boolean> => {
+    try {
+      const itemId = editingMenuItem?.id;
+      if (!itemId) return false;
+
+      // Оновлення у Supabase
+      const { error } = await supabaseAdmin
+        .from("menu_items")
+        .update({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          weight: formData.weight ? `${formData.weight} ${formData.weightUnit}` : null,
+          image_url: formData.imageUrl || null,
+          variants: formData.variants, // якщо поле є у базі як JSONB
+        })
+        .eq("id", itemId);
+
+      if (error) {
+        // TODO: Додати toast про помилку
+        return false;
+      }
+
+      // Оновлення локального стану
+      setLocalMenuItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, ...formData, price: parseFloat(formData.price) } : item
+        )
+      );
+      setIsEditMenuItemOpen(false);
+      setEditingMenuItem(null);
+
+      return true;
+    } catch (e) {
+      // TODO: Додати toast про помилку
+      return false;
+    }
+  };
+
   return (
     <DashboardLayout title="Menu Builder">
       <div className="space-y-6">
@@ -371,12 +612,15 @@ const MenuBuilder = () => {
               <p><strong>Status:</strong> {user ? 'Authenticated' : 'Not authenticated'}</p>
               <p><strong>Is Reordering:</strong> {isReordering ? 'Yes' : 'No'}</p>
               <p><strong>Has Initialized:</strong> {hasInitialized ? 'Yes' : 'No'}</p>
+              <p><strong>Has Menu Items Initialized:</strong> {hasMenuItemsInitialized ? 'Yes' : 'No'}</p>
               <p><strong>Using Local State:</strong> Yes (No server sync on drag)</p>
               <p><strong>Active Category:</strong> {activeCategoryId ? 
                 `${sortedCategories.find(c => c.id === activeCategoryId)?.name || 'Unknown'} (${activeCategoryId})` : 
                 'None'
               }</p>
-              <p><strong>Filtered Items:</strong> {filteredMenuItems?.length || 0} / {menuItems?.length || 0}</p>
+              <p><strong>Server Items:</strong> {menuItems?.length || 0}</p>
+              <p><strong>Local Items:</strong> {localMenuItems?.length || 0}</p>
+              <p><strong>Filtered Items:</strong> {filteredMenuItems?.length || 0}</p>
             </div>
           )}
         </div>
@@ -480,8 +724,36 @@ const MenuBuilder = () => {
                       : 'No menu items found.'
                     }
                   </p>
+                ) : activeCategoryId ? (
+                  <div className="drag-container">
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleMenuItemDragEnd}
+                    >
+                      <SortableContext 
+                        items={filteredMenuItems.map(item => item.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="drag-list max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                          {filteredMenuItems?.map(item => (
+                            <SortableMenuItem
+                              key={item.id}
+                              item={item}
+                              onEdit={openEditMenuItemDialog}
+                              onDelete={openDeleteDialog}
+                              categoryName={sortedCategories.find(c => c.id === item.categoryId)?.name || item.categoryId}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  </div>
                 ) : (
                   <div className="space-y-2">
+                    <p className="text-sm text-blue-600 mb-4">
+                      Select a category to enable drag & drop reordering of menu items
+                    </p>
                     {filteredMenuItems?.map(item => (
                       <div key={item.id} className="p-3 border rounded-lg">
                         <h3 className="font-medium">{item.name}</h3>
@@ -581,6 +853,17 @@ const MenuBuilder = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* EditMenuItemDialog */}
+        <EditMenuItemDialog
+          isOpen={isEditMenuItemOpen}
+          onOpenChange={(open) => {
+            setIsEditMenuItemOpen(open);
+            if (!open) setEditingMenuItem(null);
+          }}
+          onUpdateMenuItem={handleUpdateMenuItem}
+          menuItem={editingMenuItem}
+        />
       </div>
     </DashboardLayout>
   );
