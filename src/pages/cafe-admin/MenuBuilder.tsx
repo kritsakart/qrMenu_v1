@@ -224,6 +224,9 @@ const MenuBuilder = () => {
   const [isEditMenuItemOpen, setIsEditMenuItemOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState(null);
 
+  // State for Add Menu Item Dialog
+  const [isAddMenuItemOpen, setIsAddMenuItemOpen] = useState(false);
+
   // Data fetching
   const shouldFetch = Boolean(cafeId);
   
@@ -705,6 +708,10 @@ const MenuBuilder = () => {
                       </p>
                     )}
                   </div>
+                  <Button onClick={() => setIsAddMenuItemOpen(true)} size="sm" disabled={!activeCategoryId}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
                 </div>
                 
                 {itemsError ? (
