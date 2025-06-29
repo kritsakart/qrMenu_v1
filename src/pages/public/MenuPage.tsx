@@ -335,7 +335,7 @@ const MenuPage = () => {
 
               {/* Content for selected category */}
               {selectedCategoryId && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {menuItems
                     .filter((item) => item.categoryId === selectedCategoryId)
                     .sort((a, b) => {
