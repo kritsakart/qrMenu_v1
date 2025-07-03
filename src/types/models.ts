@@ -144,7 +144,8 @@ export const mapSupabaseMenuItem = (item: any): MenuItem => ({
   weight: item.weight,
   imageUrl: item.image_url,
   order: item.order || 0,
-  createdAt: item.created_at
+  createdAt: item.created_at,
+  variants: item.variants ? (Array.isArray(item.variants) ? item.variants as MenuItemVariant[] : undefined) : undefined
 });
 
 export const mapSupabaseMenuItemOption = (option: any): MenuItemOption => ({

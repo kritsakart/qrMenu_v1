@@ -37,6 +37,31 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// Add MenuItemImage component
+const MenuItemImage = ({ imageUrl, itemName }: { imageUrl?: string; itemName: string }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  if (!imageUrl || imageError) {
+    return (
+      <div className="w-20 h-20 bg-gray-100 flex items-center justify-center rounded border">
+        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={imageUrl}
+      alt={itemName}
+      className="w-20 h-20 object-cover rounded border"
+      onError={() => setImageError(true)}
+      loading="lazy"
+    />
+  );
+};
+
 // Sortable Category Item Component
 const SortableCategoryItem = ({ category, onEdit, onDelete, isSelected, onSelect }: {
   category: any;
@@ -157,6 +182,12 @@ const SortableMenuItem = ({ item, onEdit, onDelete, categoryName }: {
         >
           <GripVertical className="h-5 w-5 text-gray-400" />
         </div>
+        
+        {/* Photo */}
+        <div className="flex-shrink-0">
+          <MenuItemImage imageUrl={item.imageUrl} itemName={item.name} />
+        </div>
+        
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-gray-900 truncate">{item.name}</h3>
           <p className="text-sm text-gray-500 mt-1">
@@ -164,6 +195,11 @@ const SortableMenuItem = ({ item, onEdit, onDelete, categoryName }: {
           </p>
           {item.description && (
             <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.description}</p>
+          )}
+          {item.weight && (
+            <span className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 inline-block mt-1">
+              {item.weight}
+            </span>
           )}
         </div>
       </div>
@@ -190,6 +226,7 @@ const SortableMenuItem = ({ item, onEdit, onDelete, categoryName }: {
 };
 
 import { EditMenuItemDialog } from "@/components/menu-builder/dialogs/EditMenuItemDialog";
+import { AddMenuItemDialog } from "@/components/menu-builder/dialogs/AddMenuItemDialog";
 
 const MenuBuilder = () => {
   console.log('[DEBUG] MenuBuilder: Component rendering...');
@@ -592,6 +629,51 @@ const MenuBuilder = () => {
     }
   };
 
+  // Додаю функцію для додавання продукту
+  const handleAddMenuItem = async (formData) => {
+    try {
+      if (!activeCategoryId) return;
+      // Додаємо у Supabase
+      const { data, error } = await supabaseAdmin
+        .from("menu_items")
+        .insert({
+          category_id: activeCategoryId,
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          weight: formData.weight ? `${formData.weight} ${formData.weightUnit}` : null,
+          image_url: formData.imageUrl || null,
+          variants: formData.variants,
+          order: filteredMenuItems.length + 1,
+        })
+        .select()
+        .single();
+      if (error) {
+        // TODO: toast про помилку
+        return undefined;
+      }
+      // Мапимо дані у формат MenuItem
+      const newItem = {
+        id: data.id,
+        categoryId: data.category_id,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        weight: data.weight,
+        imageUrl: data.image_url,
+        order: data.order,
+        createdAt: data.created_at,
+        variants: data.variants,
+      };
+      setLocalMenuItems((prev) => [...prev, newItem]);
+      setIsAddMenuItemOpen(false);
+      return newItem;
+    } catch (e) {
+      // TODO: toast про помилку
+      return undefined;
+    }
+  };
+
   return (
     <DashboardLayout title="Menu Builder">
       <div className="space-y-6">
@@ -870,6 +952,14 @@ const MenuBuilder = () => {
           }}
           onUpdateMenuItem={handleUpdateMenuItem}
           menuItem={editingMenuItem}
+        />
+
+        {/* AddMenuItemDialog */}
+        <AddMenuItemDialog
+          isOpen={isAddMenuItemOpen}
+          onOpenChange={setIsAddMenuItemOpen}
+          onAddMenuItem={handleAddMenuItem}
+          categoryName={sortedCategories.find(c => c.id === activeCategoryId)?.name || ''}
         />
       </div>
     </DashboardLayout>

@@ -45,8 +45,8 @@ const MenuItemImage = ({ imageUrl, itemName }: { imageUrl?: string; itemName: st
   
   if (!imageUrl || imageError) {
     return (
-      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 flex items-center justify-center rounded">
-        <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 flex items-center justify-center rounded">
+        <ImageIcon className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
       </div>
     );
   }
@@ -55,7 +55,7 @@ const MenuItemImage = ({ imageUrl, itemName }: { imageUrl?: string; itemName: st
     <img
       src={imageUrl}
       alt={itemName}
-      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded transition-opacity duration-200 hover:opacity-90"
+      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded transition-opacity duration-200 hover:opacity-90"
       onError={() => setImageError(true)}
       loading="lazy"
     />
@@ -188,7 +188,7 @@ export const MenuItemList = ({
       console.log('🔄 Items composition changed, updating local items');
       
       // Try to load saved order from localStorage
-      let orderedItems = [...filteredItems];
+      const orderedItems = [...filteredItems];
       
       if (selectedCategoryId) {
         const savedOrderRaw = localStorage.getItem(`menuItemOrder_${selectedCategoryId}`);

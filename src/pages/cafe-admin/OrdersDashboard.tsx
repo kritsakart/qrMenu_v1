@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,31 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Order, OrderStatus } from "@/types/models";
 import { getCafeOwnerData } from "@/data/mockData";
+
+// Add MenuItemImage component
+const MenuItemImage = ({ imageUrl, itemName }: { imageUrl?: string; itemName: string }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  if (!imageUrl || imageError) {
+    return (
+      <div className="w-16 h-16 bg-gray-100 flex items-center justify-center rounded border">
+        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
+        </svg>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={imageUrl}
+      alt={itemName}
+      className="w-16 h-16 object-cover rounded border"
+      onError={() => setImageError(true)}
+      loading="lazy"
+    />
+  );
+};
 
 const OrdersDashboard = () => {
   const { user } = useAuth();
@@ -110,28 +134,47 @@ const OrdersDashboard = () => {
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       <h3 className="font-semibold">Items</h3>
-                      <div className="space-y-2">
-                        {order.items.map((item) => (
-                          <div key={item.id} className="flex justify-between">
-                            <div>
-                              <span className="font-medium">{item.quantity}x </span>
-                              <span>{item.name}</span>
-                              {item.selectedOptions && item.selectedOptions.length > 0 && (
-                                <ul className="text-sm text-muted-foreground ml-6 mt-1">
-                                  {item.selectedOptions.map((option, index) => (
-                                    <li key={index}>
-                                      {option.name}: {option.option}
-                                      {option.price > 0 && ` (+$${option.price.toFixed(2)})`}
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
+                      <div className="space-y-3">
+                        {order.items.map((item) => {
+                          // Find the menu item to get imageUrl
+                          const menuItem = cafeData.menuItems.find(mi => mi.id === item.menuItemId);
+                          
+                          return (
+                            <div key={item.id} className="flex items-start space-x-3 py-2 border-b border-gray-100 last:border-b-0">
+                              {/* Photo */}
+                              <div className="flex-shrink-0">
+                                <MenuItemImage imageUrl={menuItem?.imageUrl} itemName={item.name} />
+                              </div>
+                              
+                              {/* Item details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="font-medium text-gray-900">{item.quantity}x</span>
+                                      <span className="text-gray-900">{item.name}</span>
+                                    </div>
+                                    {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                      <ul className="text-sm text-muted-foreground mt-1">
+                                        {item.selectedOptions.map((option, index) => (
+                                          <li key={index}>
+                                            {option.name}: {option.option}
+                                            {option.price > 0 && ` (+$${option.price.toFixed(2)})`}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                  <div className="text-right ml-4">
+                                    <div className="font-medium text-gray-900">
+                                      ${(item.price * item.quantity).toFixed(2)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              ${(item.price * item.quantity).toFixed(2)}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                       
                       <div className="border-t pt-4 flex justify-between font-bold">
